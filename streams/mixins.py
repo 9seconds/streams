@@ -10,7 +10,6 @@ from operator import add, truediv
 from re import compile as regex_compile
 
 from concurrent.futures import ProcessPoolExecutor
-
 # noinspection PyUnresolvedReferences
 from six.moves import map as imap, reduce as reduce_func, filter as ifilter
 
@@ -146,8 +145,6 @@ class StreamFlowMixin(object):
         return self.__class__(heap, self.executor_class)
 
 
-# noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,
-# PyUnresolvedReferences
 # noinspection PyAttributeOutsideInit,PyUnresolvedReferences
 class StreamTerminalMixin(object):
 

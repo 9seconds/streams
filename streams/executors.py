@@ -19,7 +19,10 @@ class SequentalExecutor(Executor):
 
     def submit(self, fn, *args, **kwargs):
         future = Future()
-        future.set_result(fn(*args, **kwargs))
+        try:
+            future.set_result(fn(*args, **kwargs))
+        except Exception as exc:
+            future.set_exception(exc)
         return future
 
 try:
@@ -40,7 +43,10 @@ else:
             except Timeout as exc:
                 self.set_exception(exc)
             else:
-                self.set_result(processed_result)
+                if self.greenlet.exception:
+                    self.set_exception(self.greenlet.exception)
+                else:
+                    self.set_result(processed_result)
 
         def result(self, timeout=None):
             self.execute(timeout)
