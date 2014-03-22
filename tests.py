@@ -8,7 +8,11 @@
 from itertools import chain
 from operator import mul
 from random import shuffle
-from unittest import TestCase, main
+
+try:
+    from unittest2 import TestCase, main
+except ImportError:
+    from unittest import TestCase, main
 
 # noinspection PyUnresolvedReferences
 from six.moves import xrange

@@ -23,6 +23,8 @@ REQUIREMENTS = [
 
 if python_version < (3,):
     REQUIREMENTS.append("futures==2.1.6")
+if python_version < (2, 7):
+    REQUIREMENTS.append("unittest2==0.5.1")
 
 
 ##############################################################################
