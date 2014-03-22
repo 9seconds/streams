@@ -8,55 +8,23 @@ from __future__ import division
 
 from heapq import nlargest, nsmallest
 from itertools import chain, islice, repeat
-from multiprocessing import cpu_count
 from operator import add, truediv
 from re import compile as regex_compile
-from threading import RLock
 
-from concurrent.futures import Executor
 from six import iteritems, advance_iterator
+
 # noinspection PyUnresolvedReferences
 from six.moves import filter as ifilter, map as imap, reduce as reduce_func,\
     xrange as xxrange
 
 from .executors import ParallelExecutor
 from .iterators import seed, distinct, peek, accumulate
-from .utils import filter_map, not_predicate, value_mapper, key_mapper, \
-    filter_keys, filter_values, make_list, int_or_none, float_or_none, \
-    long_or_none, decimal_or_none
+from .utils import ExecutorPool, filter_map, not_predicate, value_mapper, \
+    key_mapper, filter_keys, filter_values, make_list, int_or_none,  \
+    float_or_none, long_or_none, decimal_or_none
 
 
 ###############################################################################
-
-
-class ExecutorPool(object):
-
-    __slots__ = "lock", "instances"
-
-    def __init__(self):
-        self.lock = RLock()
-        self.instances = {}
-
-    def __del__(self):
-        for instance in self.instances.itervalues():
-            instance.shutdown()
-
-    def __getitem__(self, item):
-        if not issubclass(item, Executor):
-            raise TypeError("Unknown type {}".format(item))
-
-        name = item.__name__
-        instance = self.instances.get(name)
-        if instance:
-            return instance
-
-        with self.lock:
-            instance = self.instances.get(name)
-            if instance:
-                return instance
-            instance = item(cpu_count())
-            self.instances[name] = instance
-            return instance
 
 
 class Stream(object):
