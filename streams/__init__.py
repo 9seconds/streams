@@ -4,7 +4,6 @@
 ###############################################################################
 
 
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-
-from .executors import SequentalExecutor, ParallelExecutor
+from .executors import SequentalExecutor, ThreadPoolExecutor, \
+    ProcessPoolExecutor, ParallelExecutor
 from .stream import Stream

@@ -4,18 +4,57 @@
 ###############################################################################
 
 
-from sys import modules
+from collections import deque
+from itertools import islice
+from sys import modules, exc_info
 
-from concurrent.futures import Executor, Future, ThreadPoolExecutor
+from concurrent.futures import Executor, Future, \
+    ThreadPoolExecutor as BaseThreadPoolExecutor, \
+    ProcessPoolExecutor as BaseProcessPoolExecutor
+
+from six import reraise
+# noinspection PyUnresolvedReferences
+from six.moves import zip as izip
 
 
 ###############################################################################
 
 
-class SequentalExecutor(Executor):
+class ProperIterableMapMixin(object):
 
+    # noinspection PyBroadException
+    @staticmethod
+    def get_first(payload):
+        try:
+            result = payload[0].result()
+        except:
+            for future in payload:
+                future.cancel()
+            reraise(*exc_info())
+        else:
+            payload.popleft()
+            return result
+
+    # noinspection PyUnresolvedReferences,PyUnusedLocal
+    def map(self, fn, *iterables, **kwargs):
+        payload = deque()
+        args_iterator = izip(*iterables)
+
+        for args in islice(args_iterator, self._max_workers):
+            payload.append(self.submit(fn, *args))
+        for args in args_iterator:
+            yield self.get_first(payload)
+            payload.append(self.submit(fn, *args))
+        while payload:
+            yield self.get_first(payload)
+
+
+class SequentalExecutor(ProperIterableMapMixin, Executor):
+
+    # noinspection PyUnusedLocal
     def __init__(self, *args, **kwargs):
         super(SequentalExecutor, self).__init__()
+        self._max_workers = 1
 
     def submit(self, fn, *args, **kwargs):
         future = Future()
@@ -24,6 +63,15 @@ class SequentalExecutor(Executor):
         except Exception as exc:
             future.set_exception(exc)
         return future
+
+
+class ThreadPoolExecutor(ProperIterableMapMixin, BaseThreadPoolExecutor):
+    pass
+
+
+class ProcessPoolExecutor(ProperIterableMapMixin, BaseProcessPoolExecutor):
+    pass
+
 
 try:
     from gevent import Timeout
@@ -60,11 +108,13 @@ else:
             self.greenlet.kill()
             return super(GreenletFuture, self).cancel()
 
-    class GeventExecutor(Executor):
+    class GeventExecutor(ProperIterableMapMixin, Executor):
 
+        # noinspection PyUnusedLocal
         def __init__(self, *args, **kwargs):
             super(GeventExecutor, self).__init__()
-            self.worker_pool = Pool()
+            self._max_workers = 100
+            self.worker_pool = Pool(self._max_workers)
 
         def submit(self, fn, *args, **kwargs):
             greenlet = self.worker_pool.apply_async(fn, args, kwargs)
