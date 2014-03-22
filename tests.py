@@ -26,7 +26,7 @@ class StreamsCase(TestCase):
         stream = stream.filter(lambda item: item % 2)
         self.assertEqual(stream.sum(), 25)
 
-        stream = Stream({v: v for v in xrange(100)})
+        stream = Stream(dict((v, v) for v in xrange(100)))
         stream = stream.filter(lambda kv: kv[0] % 2)
         stream = stream.filter(lambda kv: kv[0] % 10)
         stream = stream.limit(5).keys()
@@ -37,7 +37,7 @@ class StreamsCase(TestCase):
         stream = stream.map(lambda item: -item)
         self.assertEqual(max(stream), 0)
 
-        stream = Stream({v: v for v in xrange(100)})
+        stream = Stream(dict((v, v) for v in xrange(100)))
         stream = stream.values().skip(10).limit(3)
         self.assertListEqual(list(stream), [10, 11, 12])
 

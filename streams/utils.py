@@ -106,7 +106,7 @@ class ExecutorPool(object):
 
     def __getitem__(self, item):
         if not issubclass(item, Executor):
-            raise TypeError("Unknown type {}".format(item))
+            raise TypeError("Unknown type {}".format(item.__name__))
 
         name = item.__name__
         instance = self.instances.get(name)
