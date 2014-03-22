@@ -7,7 +7,7 @@
 from __future__ import division
 
 from heapq import nlargest, nsmallest
-from itertools import chain, islice
+from itertools import chain, islice, repeat
 from multiprocessing import cpu_count
 from operator import add, truediv
 from re import compile as regex_compile
@@ -116,6 +116,9 @@ class Stream(object):
     def odds(self):
         return self.filter(lambda item: item % 2 != 0, None)
 
+    def instances_of(self, cls):
+        return self.filter(lambda item: isinstance(item, cls), None)
+
     def exclude(self, predicate, parallel=ParallelExecutor):
         return self.filter(not_predicate(predicate), parallel)
 
@@ -142,6 +145,9 @@ class Stream(object):
 
     def decimals(self):
         return self.map(decimal_or_none, None).exclude_nones()
+
+    def tuplify(self, clones=2):
+        return self.__class__(tuple(repeat(item, clones)) for item in self)
 
     def map(self, predicate, parallel=ParallelExecutor):
         if parallel:
