@@ -41,6 +41,7 @@ def not_predicate(predicate):
     return function
 
 
+# noinspection PyBroadException
 def int_or_none(item):
     try:
         return int(item)
@@ -48,6 +49,7 @@ def int_or_none(item):
         return None
 
 
+# noinspection PyBroadException
 def float_or_none(item):
     try:
         return float(item)
@@ -55,6 +57,7 @@ def float_or_none(item):
         return None
 
 
+# noinspection PyBroadException
 def long_or_none(item):
     try:
         return long(item)
@@ -62,6 +65,7 @@ def long_or_none(item):
         return None
 
 
+# noinspection PyBroadException
 def decimal_or_none(item):
     try:
         return Decimal(item)

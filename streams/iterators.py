@@ -26,7 +26,7 @@ def partly_distinct(iterable):
     cache = LRUCache(10000)
     for item in iterable:
         if not cache.get(item):
-            cache.put(item)
+            cache.put(item, True)
             yield item
 
 
@@ -52,4 +52,5 @@ if version_info < (3, 3):
             total = function(total, item)
             yield total
 else:
+    # noinspection PyUnresolvedReferences
     from itertools import accumulate
