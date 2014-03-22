@@ -73,7 +73,7 @@ class Stream(Iterable, Sized):
 
     def regexp(self, regexp, flags=0):
         regexp = regex_compile(regexp, flags)
-        return self.filter(lambda item: regexp.match(item), None)
+        return self.filter(regexp.match, None)
 
     def divisible_by(self, number):
         return self.filter(lambda item: item % number, None)
@@ -94,7 +94,7 @@ class Stream(Iterable, Sized):
         return self.filter(lambda item: item is not None, None)
 
     def only_trues(self):
-        return self.filter(lambda item: bool(item), None)
+        return self.filter(bool, None)
 
     def only_falses(self):
         return self.filter(lambda item: not bool(item), None)
@@ -228,7 +228,7 @@ class Stream(Iterable, Sized):
             elif len(biggest) > len(smallest) + 1:
                 heappush(smallest, MaxHeapItem(heappop(biggest)))
 
-        biggest_item = max(biggest, smallest, key=lambda heap: len(heap))[0]
+        biggest_item = max(biggest, smallest, key=len)[0]
         if isinstance(biggest_item, MaxHeapItem):
             return biggest_item.value
         return biggest_item
