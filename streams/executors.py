@@ -25,19 +25,21 @@ class ProperIterableMapMixin(object):
     # noinspection PyBroadException
     @staticmethod
     def get_first(payload):
+        first_future = payload.popleft()
         try:
-            result = payload[0].result()
+            result = first_future.result()
         except:
             for future in payload:
                 future.cancel()
             reraise(*exc_info())
         else:
-            payload.popleft()
             return result
+        finally:
+            first_future.cancel()
 
     # noinspection PyUnresolvedReferences,PyUnusedLocal
     def map(self, fn, *iterables, **kwargs):
-        payload = deque()
+        payload = deque(maxlen=self._max_workers)
         args_iterator = izip(*iterables)
 
         for args in islice(args_iterator, self._max_workers):
