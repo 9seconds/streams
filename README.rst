@@ -56,7 +56,7 @@ parallel executors in appropriate places. Check this out
          .map(fetch_object_by_id_from_db, ThreadPoolExecutor) \  # guess what
          .exclude_nones() \                   # but we do not need None  here, just real objects
          .map(lambda model: model["money"]) \ # get the money from each model
-         .median() \                          # let's get the median of money then
+         .median()                            # let's get the median of money then
 
 Yes, the real example. And do not forget we have it pipelines so everything
 is trying to go in parallel. Streams are trying to use as much iterators as
