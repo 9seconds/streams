@@ -1,0 +1,4 @@
+# Requirements for Streams
+
+# Portability between Pythons
+six==1.6.1
