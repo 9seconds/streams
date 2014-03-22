@@ -29,7 +29,7 @@ from .utils import filter_map, not_predicate, value_mapper, key_mapper, \
 ###############################################################################
 
 
-class Executors(object):
+class ExecutorPool(object):
 
     __slots__ = "lock", "instances"
 
@@ -61,7 +61,7 @@ class Executors(object):
 
 class Stream(object):
 
-    EXECUTORS = Executors()
+    EXECUTORS = ExecutorPool()
 
     @classmethod
     def concat(cls, *streams):
