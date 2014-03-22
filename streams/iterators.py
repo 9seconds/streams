@@ -6,6 +6,7 @@
 
 from operator import add
 
+from repoze.lru import LRUCache
 from six import PY2, advance_iterator
 
 
@@ -17,6 +18,14 @@ def distinct(iterable):
     for item in iterable:
         if item not in distincts:
             distincts.add(item)
+            yield item
+
+
+def partly_distinct(iterable):
+    cache = LRUCache(10000)
+    for item in iterable:
+        if not cache.get(item):
+            cache.put(item)
             yield item
 
 

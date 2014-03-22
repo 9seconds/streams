@@ -18,7 +18,7 @@ from six.moves import filter as ifilter, map as imap, reduce as reduce_func, \
     xrange as xxrange
 
 from .executors import ParallelExecutor
-from .iterators import seed, distinct, peek, accumulate
+from .iterators import seed, distinct, peek, accumulate, partly_distinct
 from .utils import ExecutorPool, MaxHeapItem, filter_map, not_predicate, \
     value_mapper, key_mapper, filter_keys, filter_values, make_list, \
     int_or_none, float_or_none, long_or_none, decimal_or_none
@@ -133,6 +133,9 @@ class Stream(Iterable, Sized):
 
     def distinct(self):
         return self.__class__(distinct(self))
+
+    def partly_distinct(self):
+        return self.__class__(partly_distinct(self))
 
     # noinspection PyShadowingBuiltins
     def sorted(self, cmp=None, key=None, reverse=False):
