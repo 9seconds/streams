@@ -137,9 +137,8 @@ class Stream(Iterable, Sized):
     def partly_distinct(self):
         return self.__class__(partly_distinct(self))
 
-    # noinspection PyShadowingBuiltins
-    def sorted(self, cmp=None, key=None, reverse=False):
-        return self.__class__(sorted(self, cmp, key, reverse))
+    def sorted(self, key=None, reverse=False):
+        return self.__class__(sorted(self, reverse=reverse, key=key))
 
     def reversed(self):
         try:
