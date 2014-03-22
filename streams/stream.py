@@ -6,6 +6,7 @@
 
 from __future__ import division
 
+from collections import Iterable, Sized
 from heapq import nlargest, nsmallest, heappush, heappop
 from itertools import chain, islice, repeat
 from operator import add, truediv
@@ -27,7 +28,7 @@ from .utils import ExecutorPool, MaxHeapItem, filter_map, not_predicate, \
 ###############################################################################
 
 
-class Stream(object):
+class Stream(Iterable, Sized):
 
     EXECUTORS = ExecutorPool()
 
