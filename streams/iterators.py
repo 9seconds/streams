@@ -6,7 +6,7 @@
 
 from operator import add
 
-from six import PY2
+from six import PY2, advance_iterator
 
 
 ###############################################################################
@@ -36,7 +36,7 @@ def seed(function, seed_value):
 if PY2:
     def accumulate(iterable, function=add):
         iterator = iter(iterable)
-        total = next(iterator)
+        total = advance_iterator(iterator)
         yield total
         for item in iterator:
             total = function(total, item)

@@ -4,6 +4,15 @@
 ###############################################################################
 
 
+try:
+    from cdecimal import Decimal
+except ImportError:
+    from decimal import Decimal
+
+
+###############################################################################
+
+
 def filter_keys(item):
     if isinstance(item, tuple):
         return item[0]
@@ -26,6 +35,34 @@ def not_predicate(predicate):
     def function(*args, **kwargs):
         return not predicate(*args, **kwargs)
     return function
+
+
+def int_or_none(item):
+    try:
+        return int(item)
+    except:
+        return None
+
+
+def float_or_none(item):
+    try:
+        return float(item)
+    except:
+        return None
+
+
+def long_or_none(item):
+    try:
+        return long(item)
+    except:
+        return None
+
+
+def decimal_or_none(item):
+    try:
+        return Decimal(item)
+    except:
+        return None
 
 
 def key_mapper(predicate):

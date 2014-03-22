@@ -109,6 +109,29 @@ class StreamsCase(TestCase):
         self.assertFalse(Stream(xrange(10)).all(lambda item: item < 5))
         self.assertTrue(Stream(xrange(10)).all(lambda item: item < 100))
 
+    def test_range(self):
+        self.assertItemsEqual(list(Stream.range(100)), list(xrange(100)))
+
+    def test_concat(self):
+        stream = Stream.concat(xrange(10), xrange(10), xrange(10))
+        self.assertItemsEqual(list(stream.distinct()), list(xrange(10)))
+
+        stream = Stream.concat(xrange(10), xrange(10), xrange(10))
+        self.assertEquals(stream.count(), 30)
+
+    def test_first(self):
+        stream = Stream(xrange(10))
+        self.assertEquals(stream.first, 0)
+        self.assertEquals(stream.first, 0)
+        self.assertEquals(stream.first, 0)
+        self.assertEquals(stream.count(), 10)
+
+    def test_regexp(self):
+        stream = Stream(str(item) for item in xrange(1000))
+        stream = stream.regexp(r"^10*$")
+        stream = stream.ints()
+        self.assertItemsEqual(list(stream), [1, 10, 100])
+
 
 if __name__ == "__main__":
     main()

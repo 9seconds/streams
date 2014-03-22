@@ -14,14 +14,16 @@ from re import compile as regex_compile
 from threading import RLock
 
 from concurrent.futures import Executor
-from six import iteritems
+from six import iteritems, advance_iterator
 # noinspection PyUnresolvedReferences
-from six.moves import filter as ifilter, map as imap, reduce as reduce_func
+from six.moves import filter as ifilter, map as imap, reduce as reduce_func,\
+    xrange as xxrange
 
 from .executors import ParallelExecutor
 from .iterators import seed, distinct, peek, accumulate
 from .utils import filter_map, not_predicate, value_mapper, key_mapper, \
-    filter_keys, filter_values, make_list
+    filter_keys, filter_values, make_list, int_or_none, float_or_none, \
+    long_or_none, decimal_or_none
 
 
 ###############################################################################
@@ -63,11 +65,15 @@ class Stream(object):
 
     @classmethod
     def concat(cls, *streams):
-        return cls(chain(*streams))
+        return cls(streams).chain()
 
     @classmethod
     def iterate(cls, function, seed_value):
         return cls(seed(function, seed_value))
+
+    @classmethod
+    def range(cls, *args, **kwargs):
+        return cls(xxrange(*args, **kwargs))
 
     def __init__(self, iterator):
         iterator_function = iteritems if isinstance(iterator, dict) else iter
@@ -84,7 +90,7 @@ class Stream(object):
 
     @property
     def first(self):
-        first_element = next(self.iterator)
+        first_element = advance_iterator(self.iterator)
         self.iterator = chain([first_element], self.iterator)
         return first_element
 
@@ -99,38 +105,43 @@ class Stream(object):
 
     def regexp(self, regexp, flags=0):
         regexp = regex_compile(regexp, flags)
-        filtered = ifilter(lambda item: regexp.match(item), self)
-        return self.__class__(filtered)
+        return self.filter(lambda item: regexp.match(item), None)
 
     def divisible_by(self, number):
-        filtered = ifilter(lambda item: item % number, self)
-        return self.__class__(filtered)
+        return self.filter(lambda item: item % number, None)
 
     def evens(self):
         return self.divisible_by(2)
 
     def odds(self):
-        filtered = ifilter(lambda item: item % 2 != 0, self)
-        return self.__class__(filtered)
+        return self.filter(lambda item: item % 2 != 0, None)
 
     def exclude(self, predicate, parallel=ParallelExecutor):
         return self.filter(not_predicate(predicate), parallel)
 
     def exclude_nones(self):
-        filtered = ifilter(lambda item: item is not None, self)
-        return self.__class__(filtered)
+        return self.filter(lambda item: item is not None, None)
 
     def only_trues(self):
-        filtered = ifilter(lambda item: bool(item), self)
-        return self.__class__(filtered)
+        return self.filter(lambda item: bool(item), None)
 
     def only_falses(self):
-        filtered = ifilter(lambda item: not bool(item), self)
-        return self.__class__(filtered)
+        return self.filter(lambda item: not bool(item), None)
 
     def only_nones(self):
-        filtered = ifilter(lambda item: item is None, self)
-        return self.__class__(filtered)
+        return self.filter(lambda item: item is None, None)
+
+    def ints(self):
+        return self.map(int_or_none, None).exclude_nones()
+
+    def floats(self):
+        return self.map(float_or_none, None).exclude_nones()
+
+    def longs(self):
+        return self.map(long_or_none, None).exclude_nones()
+
+    def decimals(self):
+        return self.map(decimal_or_none, None).exclude_nones()
 
     def map(self, predicate, parallel=ParallelExecutor):
         if parallel:
@@ -151,8 +162,7 @@ class Stream(object):
 
     # noinspection PyShadowingBuiltins
     def sorted(self, cmp=None, key=None, reverse=False):
-        iterator = sorted(self, cmp, key, reverse)
-        return self.__class__(iterator)
+        return self.__class__(sorted(self, cmp, key, reverse))
 
     def reversed(self):
         try:
@@ -176,6 +186,9 @@ class Stream(object):
     def values(self):
         return self.map(filter_values)
 
+    def chain(self):
+        return self.__class__(chain.from_iterable(self))
+
     # noinspection PyTypeChecker
     def largest(self, size):
         iterator = iter(self)
@@ -198,12 +211,12 @@ class Stream(object):
     def reduce(self, function, initial=None):
         iterator = iter(self)
         if initial is None:
-            initial = next(iterator)
+            initial = advance_iterator(iterator)
         return reduce_func(function, iterator, initial)
 
     def sum(self):
         iterator = accumulate(self, add)
-        last = next(iterator)
+        last = advance_iterator(iterator)
         for item in iterator:
             last = item
         return last
@@ -216,7 +229,7 @@ class Stream(object):
     def average(self):
         counter = 1
         iterator = iter(self)
-        total = next(iterator)
+        total = advance_iterator(iterator)
         for item in iterator:
             total = add(total, item)
             counter += 1
