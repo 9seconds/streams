@@ -33,7 +33,7 @@ Checkout `how it looks with Java <http://download.java.net/jdk8/docs/api/java/ut
 
 Nice. Now it goes Streams one
 
-.. code-block:: pycon
+.. code-block:: python
 
      sum = Stream(widgets) \
          .filter(lambda widget: widget.get_color() == RED) \
@@ -46,7 +46,7 @@ is trying to parallelize almost everything and by default maps and filters
 are parallel. But if you don't like it you could disable it or mix your own
 parallel executors in appropriate places. Check this out
 
-.. code-block:: pycon
+.. code-block:: python
 
      money_median = Stream(urls) \
          .map(requests.get, GeventExecutor) \            # fetch APIs
