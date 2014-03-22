@@ -5,9 +5,10 @@
 
 
 from operator import add
+from sys import version_info
 
 from repoze.lru import LRUCache
-from six import PY2, advance_iterator
+from six import advance_iterator
 
 
 ###############################################################################
@@ -42,7 +43,7 @@ def seed(function, seed_value):
         yield seed_value
 
 
-if PY2:
+if version_info < (3, 3):
     def accumulate(iterable, function=add):
         iterator = iter(iterable)
         total = advance_iterator(iterator)
