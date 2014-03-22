@@ -9,9 +9,12 @@ python:
   - "pypy"
 
 install:
-  - "pip install -r requirements.txt"
+  - "pip install --use-mirrors pep8"
+  - "pip install --use-mirrors -r requirements.txt"
 
-script: python tests.py
+script:
+  - pep8 .
+  - ./tests.py
 
 notifications:
   email:
