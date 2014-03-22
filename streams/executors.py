@@ -64,7 +64,7 @@ else:
 
         def __init__(self, *args, **kwargs):
             super(GeventExecutor, self).__init__()
-            self.worker_pool = Pool(kwargs.get("max_workers"))
+            self.worker_pool = Pool()
 
         def submit(self, fn, *args, **kwargs):
             greenlet = self.worker_pool.apply_async(fn, args, kwargs)

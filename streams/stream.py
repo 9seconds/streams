@@ -6,52 +6,75 @@
 
 from __future__ import division
 
-from itertools import chain
+from heapq import heapify, heapreplace, _heapify_max, _heappushpop_max
+from itertools import chain, islice
 from multiprocessing import cpu_count
+from operator import add, truediv
+from re import compile as regex_compile
+from threading import RLock
 
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import Executor
 from six import iteritems
+# noinspection PyUnresolvedReferences
+from six.moves import filter as ifilter, map as imap, reduce as reduce_func
 
 from .executors import ParallelExecutor
-from .mixins import StreamFactoryMixin, StreamFlowMixin, StreamTerminalMixin
+from .iterators import seed, distinct, peek, accumulate
+from .utils import filter_map, not_predicate, value_mapper, key_mapper, \
+    filter_keys, filter_values, make_list
 
 
 ###############################################################################
 
 
-class Stream(StreamFactoryMixin, StreamFlowMixin, StreamTerminalMixin):
+class Executors(object):
 
-    def __init__(self, streamed_object=None, executor_class=ParallelExecutor):
-        self.parallel_executor = None
-        self.process_executor = None
-        self.executor_class = executor_class
-        self.length = None
+    __slots__ = "lock", "instances"
 
-        if streamed_object is None:
-            streamed_object = tuple()
+    def __init__(self):
+        self.lock = RLock()
+        self.instances = {}
 
-        if isinstance(streamed_object, Stream):
-            self.parallel_executor = streamed_object.parallel_executor
-            self.process_executor = streamed_object.process_executor
+    def __del__(self):
+        for instance in self.instances.itervalues():
+            instance.shutdown()
 
-        if isinstance(streamed_object, dict):
-            self.iterator = iteritems(streamed_object)
-        else:
-            self.iterator = iter(streamed_object)
+    def __getitem__(self, item):
+        if not issubclass(item, Executor):
+            raise TypeError("Unknown type {}".format(item))
 
-        if hasattr(streamed_object, "__len__"):
-            worker_count = len(streamed_object)
-        else:
-            worker_count = cpu_count()
+        name = item.__name__
+        instance = self.instances.get(name)
+        if instance:
+            return instance
 
-        if executor_class == ProcessPoolExecutor:
-            if self.process_executor is None:
-                self.process_executor = ProcessPoolExecutor(worker_count)
-            self.executor = self.process_executor
-        else:
-            if not isinstance(self.parallel_executor, executor_class):
-                self.parallel_executor = executor_class(worker_count)
-            self.executor = self.parallel_executor
+        with self.lock:
+            instance = self.instances.get(name)
+            if instance:
+                return instance
+            instance = item(cpu_count())
+            self.instances[name] = instance
+            return instance
+
+
+class Stream(object):
+
+    EXECUTORS = Executors()
+
+    @classmethod
+    def concat(cls, *streams):
+        return cls(chain(*streams))
+
+    @classmethod
+    def iterate(cls, function, seed_value):
+        return cls(seed(function, seed_value))
+
+    def __init__(self, iterator):
+        iterator_function = iteritems if isinstance(iterator, dict) else iter
+        self.iterator = iterator_function(iterator)
+
+    def __len__(self):
+        return len(self.iterator)
 
     def __iter__(self):
         return iter(self.iterator)
@@ -59,12 +82,167 @@ class Stream(StreamFactoryMixin, StreamFlowMixin, StreamTerminalMixin):
     def __reversed__(self):
         return self.reversed()
 
-    # noinspection PyTypeChecker
-    def __len__(self):
-        return len(self.iterator)
-
     @property
     def first(self):
         first_element = next(self.iterator)
         self.iterator = chain([first_element], self.iterator)
         return first_element
+
+    def filter(self, predicate, parallel=ParallelExecutor):
+        if parallel:
+            executor = self.EXECUTORS[parallel]
+            new_iterator = executor.map(filter_map(predicate), self)
+            filtered = [item for result, item in new_iterator if result]
+        else:
+            filtered = ifilter(predicate, self)
+        return self.__class__(filtered)
+
+    def regexp(self, regexp, flags=0):
+        regexp = regex_compile(regexp, flags)
+        filtered = ifilter(lambda item: regexp.match(item), self)
+        return self.__class__(filtered)
+
+    def divisible_by(self, number):
+        filtered = ifilter(lambda item: item % number, self)
+        return self.__class__(filtered)
+
+    def evens(self):
+        return self.divisible_by(2)
+
+    def odds(self):
+        filtered = ifilter(lambda item: item % 2 != 0, self)
+        return self.__class__(filtered)
+
+    def exclude(self, predicate, parallel=ParallelExecutor):
+        return self.filter(not_predicate(predicate), parallel)
+
+    def exclude_nones(self):
+        filtered = ifilter(lambda item: item is not None, self)
+        return self.__class__(filtered)
+
+    def only_trues(self):
+        filtered = ifilter(lambda item: bool(item), self)
+        return self.__class__(filtered)
+
+    def only_falses(self):
+        filtered = ifilter(lambda item: not bool(item), self)
+        return self.__class__(filtered)
+
+    def only_nones(self):
+        filtered = ifilter(lambda item: item is None, self)
+        return self.__class__(filtered)
+
+    def map(self, predicate, parallel=ParallelExecutor):
+        if parallel:
+            executor = self.EXECUTORS[parallel]
+            mapped = executor.map(predicate, self)
+        else:
+            mapped = imap(predicate, self)
+        return self.__class__(mapped)
+
+    def value_mapper(self, predicate, parallel=ParallelExecutor):
+        return self.map(value_mapper(predicate), parallel)
+
+    def key_mapper(self, predicate, parallel=ParallelExecutor):
+        return self.map(key_mapper(predicate), parallel)
+
+    def distinct(self):
+        return self.__class__(distinct(self))
+
+    # noinspection PyShadowingBuiltins
+    def sorted(self, cmp=None, key=None, reverse=False):
+        iterator = sorted(self, cmp, key, reverse)
+        return self.__class__(iterator)
+
+    def reversed(self):
+        try:
+            iterator = reversed(self.iterator)
+        except TypeError:
+            iterator = reversed(list(self.iterator))
+        return self.__class__(iterator)
+
+    def peek(self, predicate):
+        return self.__class__(peek(self, predicate))
+
+    def limit(self, size):
+        return self.__class__(islice(self, size))
+
+    def skip(self, size):
+        return self.__class__(islice(self, size, None))
+
+    def keys(self):
+        return self.map(filter_keys)
+
+    def values(self):
+        return self.map(filter_values)
+
+    # noinspection PyTypeChecker
+    def largest(self, size):
+        iterator = iter(self)
+        heap = make_list(islice(iterator, size))
+        heapify(heap)
+        for item in iterator:
+            if item > heap[0]:
+                heapreplace(heap, item)
+        return self.__class__(heap)
+
+    def smallest(self, size):
+        iterator = iter(self)
+        heap = make_list(islice(iterator, size))
+        _heapify_max(heap)
+        for item in iterator:
+            if item < heap[0]:
+                _heappushpop_max(heap, item)
+        return self.__class__(heap)
+
+    def reduce(self, function, initial=None):
+        iterator = iter(self)
+        if initial is None:
+            initial = next(iterator)
+        return reduce_func(function, iterator, initial)
+
+    def sum(self):
+        iterator = accumulate(self, add)
+        last = next(iterator)
+        for item in iterator:
+            last = item
+        return last
+
+    def count(self):
+        if hasattr(self.iterator, "__len__"):
+            return len(self.iterator)
+        return sum((1 for _ in self))
+
+    def average(self):
+        counter = 1
+        iterator = iter(self)
+        total = next(iterator)
+        for item in iterator:
+            total = add(total, item)
+            counter += 1
+        return truediv(total, counter)
+
+    def nth_element(self, nth):
+        if nth == 1:
+            return min(self)
+        self.iterator = make_list(self.iterator)
+        if nth <= len(self.iterator):
+            return max(self.smallest(nth))
+
+    def median(self):
+        self.iterator = make_list(self.iterator)
+        return self.nth_element(len(self.iterator) // 2)
+
+    def any(self, predicate=None, parallel=None):
+        if predicate is None:
+            iterator = iter(self)
+        else:
+            iterator = self.map(predicate, parallel)
+        return any(iterator)
+
+    def all(self, predicate=None, parallel=None):
+        if predicate is None:
+            iterator = iter(self)
+        else:
+            iterator = self.map(predicate, parallel)
+        return all(iterator)
