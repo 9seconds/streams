@@ -21,10 +21,10 @@ REQUIREMENTS = [
 ##############################################################################
 
 
-if python_version < (3,):
-    REQUIREMENTS.append("futures==2.1.6")
 if python_version < (2, 7):
     REQUIREMENTS.append("unittest2==0.5.1")
+if python_version < (3,):
+    REQUIREMENTS.append("futures==2.1.6")
 
 
 ##############################################################################
@@ -32,8 +32,7 @@ if python_version < (2, 7):
 
 setup(
     name="Streams",
-    description="RYMTracks scraps given URLs and presents tracklists into "
-                "copypasteable form for RateYourMusic.com",
+    description="Streams inspired by Java 8",
     version="0.1",
     author="Sergey Arkhipov",
     license="MIT",
@@ -44,13 +43,16 @@ setup(
     url="https://github.com/9seconds/streams/",
     install_requires=REQUIREMENTS,
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
+        "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3.2",
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Software Development :: Libraries",
     ],
