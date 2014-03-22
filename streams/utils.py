@@ -2,10 +2,11 @@
 
 
 ###############################################################################
+
+
 from multiprocessing import cpu_count
 from threading import RLock
 from concurrent.futures import Executor
-
 
 try:
     from cdecimal import Decimal
@@ -88,6 +89,9 @@ def make_list(iterable):
     return list(iterable)
 
 
+###############################################################################
+
+
 class ExecutorPool(object):
 
     __slots__ = "lock", "instances"
@@ -116,3 +120,52 @@ class ExecutorPool(object):
             instance = item(cpu_count())
             self.instances[name] = instance
             return instance
+
+
+class MaxHeapItem(object):
+
+    __slots__ = "value",
+
+    def __init__(self, value):
+        self.value = value
+
+    def __lt__(self, other):
+        other = other.value if isinstance(other, MaxHeapItem) else other
+        return self.value > other
+
+    def __le__(self, other):
+        other = other.value if isinstance(other, MaxHeapItem) else other
+        return self.value >= other.value
+
+    def __gt__(self, other):
+        other = other.value if isinstance(other, MaxHeapItem) else other
+        return self.value < other
+
+    def __ge__(self, other):
+        other = other.value if isinstance(other, MaxHeapItem) else other
+        return self.value <= other
+
+    def __eq__(self, other):
+        other = other.value if isinstance(other, MaxHeapItem) else other
+        return self.value == other
+
+    def __ne__(self, other):
+        other = other.value if isinstance(other, MaxHeapItem) else other
+        return self.value != other
+
+    def __cmp__(self, other):
+        other = other.value if isinstance(other, MaxHeapItem) else other
+        if self.value < other:
+            return 1
+        if self.value == other:
+            return 0
+        return -1
+
+    def __repr__(self):
+        return repr(self.value)
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __nonzero__(self):
+        return bool(self.value)

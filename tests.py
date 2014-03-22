@@ -7,6 +7,7 @@
 
 from itertools import chain
 from operator import mul
+from random import shuffle
 from unittest import TestCase, main
 
 # noinspection PyUnresolvedReferences
@@ -77,9 +78,17 @@ class StreamsCase(TestCase):
         self.assertEquals(stream, 3628800)
 
     def test_median(self):
-        self.assertEquals(4, Stream(xrange(10)).median())
-        self.assertEquals(4, Stream(xrange(11)).median())
-        self.assertEquals(5, Stream(xrange(12)).median())
+        self.assertEquals(5, Stream(xrange(10)).median())
+        self.assertEquals(5, Stream(xrange(11)).median())
+        self.assertEquals(6, Stream(xrange(12)).median())
+
+        arr = list(xrange(12))
+        shuffle(arr)
+        self.assertEquals(6, Stream(arr).median())
+
+        arr = list(xrange(11))
+        shuffle(arr)
+        self.assertEquals(5, Stream(arr).median())
 
     def test_nth(self):
         self.assertEquals(0, Stream(xrange(10)).nth_element(1))

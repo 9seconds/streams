@@ -6,7 +6,7 @@
 
 from __future__ import division
 
-from heapq import nlargest, nsmallest
+from heapq import nlargest, nsmallest, heappush, heappop
 from itertools import chain, islice, repeat
 from operator import add, truediv
 from re import compile as regex_compile
@@ -19,9 +19,9 @@ from six.moves import filter as ifilter, map as imap, reduce as reduce_func,\
 
 from .executors import ParallelExecutor
 from .iterators import seed, distinct, peek, accumulate
-from .utils import ExecutorPool, filter_map, not_predicate, value_mapper, \
-    key_mapper, filter_keys, filter_values, make_list, int_or_none,  \
-    float_or_none, long_or_none, decimal_or_none
+from .utils import ExecutorPool, MaxHeapItem, filter_map, not_predicate, \
+    value_mapper, key_mapper, filter_keys, filter_values, make_list, \
+    int_or_none, float_or_none, long_or_none, decimal_or_none
 
 
 ###############################################################################
@@ -204,8 +204,34 @@ class Stream(object):
             return max(self.smallest(nth))
 
     def median(self):
-        self.iterator = make_list(self.iterator)
-        return self.nth_element(len(self.iterator) // 2)
+        biggest, smallest = [], []
+        iterator = iter(self)
+        first_elements = list(islice(iterator, 2))
+        if not first_elements:
+            return None
+        if len(first_elements) == 1:
+            return first_elements[0]
+
+        first, last = first_elements
+        if first > last:
+            first, last = last, first
+        smallest.append(MaxHeapItem(first))
+        biggest.append(last)
+
+        for item in iterator:
+            if item < smallest[0].value:
+                heappush(smallest, MaxHeapItem(item))
+            else:
+                heappush(biggest, item)
+            if len(smallest) > len(biggest) + 1:
+                heappush(biggest, heappop(smallest).value)
+            elif len(biggest) > len(smallest) + 1:
+                heappush(smallest, MaxHeapItem(heappop(biggest)))
+
+        biggest_item = max(biggest, smallest, key=lambda heap: len(heap))[0]
+        if isinstance(biggest_item, MaxHeapItem):
+            return biggest_item.value
+        return biggest_item
 
     def any(self, predicate=None, parallel=None):
         if predicate is None:
