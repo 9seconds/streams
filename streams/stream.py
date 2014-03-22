@@ -6,7 +6,7 @@
 
 from __future__ import division
 
-from heapq import heapify, heapreplace, _heapify_max, _heappushpop_max
+from heapq import nlargest, nsmallest
 from itertools import chain, islice
 from multiprocessing import cpu_count
 from operator import add, truediv
@@ -189,24 +189,11 @@ class Stream(object):
     def chain(self):
         return self.__class__(chain.from_iterable(self))
 
-    # noinspection PyTypeChecker
     def largest(self, size):
-        iterator = iter(self)
-        heap = make_list(islice(iterator, size))
-        heapify(heap)
-        for item in iterator:
-            if item > heap[0]:
-                heapreplace(heap, item)
-        return self.__class__(heap)
+        return self.__class__(nlargest(size, self))
 
     def smallest(self, size):
-        iterator = iter(self)
-        heap = make_list(islice(iterator, size))
-        _heapify_max(heap)
-        for item in iterator:
-            if item < heap[0]:
-                _heappushpop_max(heap, item)
-        return self.__class__(heap)
+        return self.__class__(nsmallest(size, self))
 
     def reduce(self, function, initial=None):
         iterator = iter(self)
