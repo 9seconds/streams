@@ -50,7 +50,7 @@ class ExecutorPool(object):
             return
 
         with self.lock:
-            for avail in iterkeys(self.workers):
+            for avail in list(iterkeys(self.workers)):
                 if not self.workers[avail]:
                     self.workers.pop(avail)
 
