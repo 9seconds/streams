@@ -4,6 +4,4 @@
 ###############################################################################
 
 
-from .executors import SequentalExecutor, ThreadPoolExecutor, \
-    ProcessPoolExecutor, ParallelExecutor
 from .stream import Stream

@@ -8,7 +8,6 @@ from collections import defaultdict
 from functools import partial
 from multiprocessing import cpu_count
 from threading import RLock
-from uuid import uuid4
 
 from six import iteritems, iterkeys
 
@@ -36,7 +35,7 @@ class ExecutorPool(object):
             self.squash()
             worker, availability = self.get_suitable_worker(required_workers)
             if worker is None:
-                worker = self.create_worker(required_workers)
+                worker = self.worker_class(required_workers)
                 availability = required_workers
             availability -= required_workers
             if availability > 0:
@@ -45,11 +44,6 @@ class ExecutorPool(object):
         return partial(worker.map,
                        required_workers=required_workers,
                        callback=self.worker_finished)
-
-    def create_worker(self, required_workers):
-        worker = self.worker_class(required_workers)
-        worker.set_name(uuid4().hex)
-        return worker
 
     def squash(self):
         if not self.workers:
@@ -64,6 +58,8 @@ class ExecutorPool(object):
             real_availability = self.real_worker_availability()
 
             self.workers = defaultdict(lambda: [])
+            # sorted matters here. We will go from bottom to top. In this case
+            # we do not need for traversing it again and again
             for avail, workers in sorted(iteritems(real_availability)):
                 selected_worker = name_to_workers[workers[0]]
                 if len(workers) == 1:
@@ -93,7 +89,7 @@ class ExecutorPool(object):
             name_to_workers = {}
             for avail, workers in iteritems(self.workers):
                 name_to_workers.update(
-                    (worker.get_name(), worker) for worker in workers
+                    (id(worker), worker) for worker in workers
                 )
             return name_to_workers
 
@@ -102,7 +98,7 @@ class ExecutorPool(object):
             real_availability = defaultdict(lambda: [])
             for avail, workers in iteritems(self.workers):
                 for wrk in workers:
-                    real_availability[wrk.get_name()].append(avail)
+                    real_availability[id(wrk)].append(avail)
             for name in iterkeys(real_availability):
                 real_availability[name] = max(real_availability[name])
 
@@ -134,15 +130,10 @@ class PoolOfPools(object):
 
     def get(self, parallel, process):
         if parallel in (1, True):
-            parallel = self.default_count
-        elif parallel is None:
-            parallel = 0
-        if parallel > 0:
+            return self.parallel(self.default_count)
+        if parallel is not None:
             return self.parallel(parallel)
-
         if process in (1, True):
-            process = self.default_count
-        elif process is None:
-            process = 0
-        if process > 0:
+            return self.process(self.default_count)
+        if process is not None:
             return self.process(process)

@@ -13,6 +13,7 @@ from operator import add, truediv
 from re import compile as regex_compile
 
 from six import iteritems, advance_iterator
+
 # noinspection PyUnresolvedReferences
 from six.moves import filter as ifilter, map as imap, reduce as reduce_func, \
     xrange as xxrange
