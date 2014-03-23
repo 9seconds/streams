@@ -10,6 +10,10 @@ from operator import mul
 from random import shuffle
 
 try:
+    from cdecimal import Decimal
+except ImportError:
+    from decimal import Decimal
+try:
     from unittest2 import TestCase, main
 except ImportError:
     from unittest import TestCase, main
@@ -144,6 +148,83 @@ class StreamsCase(TestCase):
         stream = stream.regexp(r"^10*$")
         stream = stream.ints()
         self.assertListEqual(list(stream), [1, 10, 100])
+
+    def test_divisibleby(self):
+        stream = Stream(xrange(2000))
+        stream = stream.ints().divisible_by(10)
+        self.assertEqual(stream.count(), 200)
+
+        stream = Stream(xrange(2000))
+        stream = stream.divisible_by(1000)
+        self.assertEquals(list(stream), [0, 1000])
+
+    def test_evens(self):
+        stream = Stream(xrange(200))
+        stream = stream.ints().evens()
+        elements = list(stream)
+        self.assertEqual(len(elements), 100)
+        self.assertTrue(all(item % 2 == 0 for item in elements))
+
+    def test_odds(self):
+        stream = Stream(xrange(200))
+        stream = stream.odds()
+        elements = list(stream)
+        self.assertEqual(len(elements), 100)
+        self.assertFalse(any(item % 2 == 0 for item in elements))
+
+    def test_instances_of(self):
+        elements = list(xrange(100))
+        # noinspection PyTypeChecker
+        elements = elements + [str(item) for item in elements] + [None, None]
+        strings = list(Stream(elements).instances_of(str))
+        ints = list(Stream(elements).instances_of(int))
+        self.assertEqual(len(strings), 100)
+        self.assertTrue(all(isinstance(item, str) for item in strings))
+        self.assertEqual(len(ints), 100)
+        self.assertTrue(all(isinstance(item, int) for item in ints))
+
+    def test_exclude_nones(self):
+        elements = list(xrange(100)) + [None, None]
+        without_nones = list(Stream(elements).exclude_nones())
+        self.assertEqual(without_nones, list(xrange(100)))
+
+    def test_exclude(self):
+        elements = list(xrange(100))
+        evens = list(Stream(elements).exclude(lambda item: item % 2 != 0))
+        evens2 = list(Stream(elements).evens())
+        self.assertEqual(evens, evens2)
+
+    def test_only_trues(self):
+        elements = list(xrange(5)) + [True, False, True, None, 1, object()]
+        stream = Stream(elements).only_trues()
+        self.assertTrue(all(bool(item) for item in stream))
+
+    def test_only_falses(self):
+        elements = list(xrange(5)) + [True, False, True, None, 1, object()]
+        stream = Stream(elements).only_falses()
+        self.assertFalse(any(bool(item) for item in stream))
+
+    def test_only_nones(self):
+        elements = list(xrange(5)) + [True, False, True, None, 1, object()]
+        stream = Stream(elements).only_nones()
+        self.assertTrue(all(item is None for item in stream))
+
+    def test_count(self):
+        elements = list(xrange(5)) * 2
+        self.assertEqual(Stream(elements).count(), 10)
+        self.assertEqual(Stream(elements).count(1), 2)
+
+    def test_sum(self):
+        elements = list(xrange(5))
+        int_result = Stream(elements).ints().sum()
+        float_result = Stream(elements).floats().sum()
+        decimal_result = Stream(elements).decimals().sum()
+        self.assertEqual(int_result, 10)
+        self.assertIsInstance(int_result, int)
+        self.assertAlmostEqual(float_result, 10)
+        self.assertIsInstance(float_result, float)
+        self.assertEqual(decimal_result, Decimal("10"))
+        self.assertIsInstance(decimal_result, Decimal)
 
 
 if __name__ == "__main__":

@@ -6,7 +6,10 @@
 
 from multiprocessing import cpu_count
 from threading import RLock
+
 from concurrent.futures import Executor
+
+from six import text_type, string_types
 
 try:
     from cdecimal import Decimal
@@ -43,6 +46,8 @@ def not_predicate(predicate):
 
 # noinspection PyBroadException
 def int_or_none(item):
+    if isinstance(item, int):
+        return item
     try:
         return int(item)
     except:
@@ -51,6 +56,8 @@ def int_or_none(item):
 
 # noinspection PyBroadException
 def float_or_none(item):
+    if isinstance(item, float):
+        return item
     try:
         return float(item)
     except:
@@ -59,6 +66,8 @@ def float_or_none(item):
 
 # noinspection PyBroadException
 def long_or_none(item):
+    if isinstance(item, long):
+        return item
     try:
         return long(item)
     except:
@@ -67,8 +76,30 @@ def long_or_none(item):
 
 # noinspection PyBroadException
 def decimal_or_none(item):
+    if isinstance(item, Decimal):
+        return item
     try:
         return Decimal(item)
+    except:
+        return None
+
+
+# noinspection PyBroadException
+def unicode_or_none(item):
+    if isinstance(item, text_type):
+        return item
+    try:
+        return text_type(item)
+    except:
+        return None
+
+
+# noinspection PyBroadException
+def string_or_none(item):
+    if isinstance(item, string_types):
+        return item
+    try:
+        return str(item)
     except:
         return None
 

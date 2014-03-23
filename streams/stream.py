@@ -21,7 +21,7 @@ from .executors import ParallelExecutor
 from .iterators import seed, distinct, peek, accumulate, partly_distinct
 from .utils import ExecutorPool, MaxHeapItem, filter_map, not_predicate, \
     value_mapper, key_mapper, filter_keys, filter_values, make_list, \
-    int_or_none, float_or_none, long_or_none, decimal_or_none
+    int_or_none, float_or_none, long_or_none, decimal_or_none, unicode_or_none
 
 
 ###############################################################################
@@ -30,6 +30,7 @@ from .utils import ExecutorPool, MaxHeapItem, filter_map, not_predicate, \
 class Stream(Iterable, Sized):
 
     EXECUTORS = ExecutorPool()
+    SENTINEL = object()
 
     @classmethod
     def concat(cls, *streams):
@@ -76,7 +77,7 @@ class Stream(Iterable, Sized):
         return self.filter(regexp.match, None)
 
     def divisible_by(self, number):
-        return self.filter(lambda item: item % number, None)
+        return self.filter(lambda item: item % number == 0, None)
 
     def evens(self):
         return self.divisible_by(2)
@@ -113,6 +114,9 @@ class Stream(Iterable, Sized):
 
     def decimals(self):
         return self.map(decimal_or_none, None).exclude_nones()
+
+    def strings(self):
+        return self.map(unicode_or_none, None).exclude_nones()
 
     def tuplify(self, clones=2):
         return self.__class__(tuple(repeat(item, clones)) for item in self)
@@ -184,7 +188,9 @@ class Stream(Iterable, Sized):
             last = item
         return last
 
-    def count(self):
+    def count(self, element=SENTINEL):
+        if element is not self.SENTINEL:
+            return sum((1 for item in self if item is element))
         if hasattr(self.iterator, "__len__"):
             return len(self.iterator)
         return sum((1 for _ in self))
