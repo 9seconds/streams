@@ -9,7 +9,7 @@ from functools import partial
 from multiprocessing import cpu_count
 from threading import RLock
 
-from six import iteritems, iterkeys
+from six import iteritems, iterkeys, itervalues
 
 from .executors import ParallelExecutor, ProcessPoolExecutor
 
@@ -74,7 +74,7 @@ class ExecutorPool(object):
     def name_to_worker_mapping(self):
         with self.lock:
             name_to_workers = {}
-            for avail, workers in iteritems(self.workers):
+            for workers in itervalues(self.workers):
                 name_to_workers.update(
                     (id(worker), worker) for worker in workers
                 )
