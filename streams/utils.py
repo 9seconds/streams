@@ -10,6 +10,7 @@ from threading import RLock
 from concurrent.futures import Executor
 
 from six import text_type, string_types
+# noinspection PyUnresolvedReferences
 from six.moves import zip as izip
 
 try:
