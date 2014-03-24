@@ -63,7 +63,7 @@ class ExecutorPool(object):
             for avail, workers in sorted(iteritems(real_availability)):
                 selected_worker = name_to_workers[workers[0]]
                 if len(workers) == 1:
-                    self.workers[avail] = selected_worker
+                    self.workers[avail] = [selected_worker]
                     continue
                 selected_worker.expand(avail * (len(workers) - 1))
                 real_availability[avail * len(workers)].append(workers[0])
@@ -77,7 +77,11 @@ class ExecutorPool(object):
                         min_available = availability
                         suspected_workers = workers
             if min_available is not None:
-                return suspected_workers.pop(), min_available
+                try:
+                    return suspected_workers.pop(), min_available
+                except:
+                    from pdb import set_trace
+                    set_trace()
             return None, 0
 
     def worker_finished(self, worker, required_workers):

@@ -10,6 +10,7 @@ from threading import RLock
 from concurrent.futures import Executor
 
 from six import text_type, string_types
+from six.moves import zip as izip
 
 try:
     from cdecimal import Decimal
@@ -32,16 +33,14 @@ def filter_values(item):
     return item
 
 
-def filter_map(predicate):
-    def map_function(item):
-        return bool(predicate(item)), item
-    return map_function
+def filter_true(argument):
+    predicate, item = argument
+    return bool(predicate(item)), item
 
 
-def not_predicate(predicate):
-    def function(*args, **kwargs):
-        return not predicate(*args, **kwargs)
-    return function
+def filter_false(argument):
+    is_correct, item = filter_true(argument)
+    return not is_correct, item
 
 
 # noinspection PyBroadException
@@ -104,18 +103,29 @@ def string_or_none(item):
         return None
 
 
-def key_mapper(predicate):
-    def map_function(item):
-        key, value = item if isinstance(item, tuple) else (item, item)
-        return predicate(key), value
-    return map_function
+def apply_to_tuple(*funcs, **kwargs):
+    item = kwargs["item"]
+    if not isinstance(item, (tuple, list)):
+        return funcs[0](item)
+
+    result = []
+    for func, arg in izip(funcs, item):
+        if func is not None:
+            arg = func(arg)
+        result.append(arg)
+    return tuple(result)
 
 
-def value_mapper(predicate):
-    def map_function(item):
-        key, value = item if isinstance(item, tuple) else (item, item)
-        return key, predicate(value)
-    return map_function
+def key_mapper(argument):
+    predicate, item = argument
+    item = item if isinstance(item, (tuple, list)) else (item, item)
+    return apply_to_tuple(predicate, None, item=item)
+
+
+def value_mapper(argument):
+    predicate, item = argument
+    item = item if isinstance(item, (tuple, list)) else (item, item)
+    return apply_to_tuple(None, predicate, item=item)
 
 
 def make_list(iterable):

@@ -109,20 +109,20 @@ class StreamsCase(TestCase):
         self.assertTrue(Stream(xrange(10)).any())
         self.assertFalse(Stream([]).any())
         self.assertTrue(Stream(xrange(10)).any(lambda item: item > 5,
-                                               parallel=None))
+                                               parallel=True))
         self.assertTrue(Stream(xrange(10)).any(lambda item: item > 5))
         self.assertFalse(Stream(xrange(10)).any(lambda item: item < -1,
-                                                parallel=None))
+                                                parallel=True))
 
     def test_average(self):
         self.assertAlmostEqual(Stream(xrange(200)).average(), 99.5)
 
     def test_all(self):
-        self.assertTrue(Stream(xrange(1, 10)).all(parallel=None))
+        self.assertTrue(Stream(xrange(1, 10)).all(parallel=True))
         self.assertTrue(Stream(xrange(1, 10)).all())
         self.assertTrue(Stream([]).all())
         self.assertTrue(Stream([]).all())
-        self.assertFalse(Stream(xrange(10)).all(parallel=None))
+        self.assertFalse(Stream(xrange(10)).all(parallel=True))
         self.assertFalse(Stream(xrange(10)).all())
         self.assertFalse(Stream(xrange(10)).all(lambda item: item < 5))
         self.assertTrue(Stream(xrange(10)).all(lambda item: item < 100))
@@ -191,7 +191,7 @@ class StreamsCase(TestCase):
 
     def test_exclude(self):
         elements = list(xrange(100))
-        evens = list(Stream(elements).exclude(lambda item: item % 2 != 0))
+        evens = list(Stream(elements).exclude(lambda item: item % 2 == 0))
         evens2 = list(Stream(elements).evens())
         self.assertEqual(evens, evens2)
 

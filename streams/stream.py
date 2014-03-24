@@ -19,10 +19,10 @@ from six.moves import filter as ifilter, map as imap, reduce as reduce_func, \
     xrange as xxrange
 
 from .iterators import seed, distinct, peek, accumulate, partly_distinct
-from .utils import MaxHeapItem, filter_map, not_predicate, value_mapper, \
+from .poolofpools import PoolOfPools
+from .utils import MaxHeapItem, filter_true, filter_false, value_mapper, \
     key_mapper, filter_keys, filter_values, make_list, int_or_none, \
     float_or_none, long_or_none, decimal_or_none, unicode_or_none
-from .poolofpools import PoolOfPools
 
 
 ###############################################################################
@@ -30,7 +30,7 @@ from .poolofpools import PoolOfPools
 
 class Stream(Iterable, Sized):
 
-    workers = PoolOfPools()
+    WORKERS = PoolOfPools()
     SENTINEL = object()
 
     @classmethod
@@ -50,10 +50,6 @@ class Stream(Iterable, Sized):
             self.iterator = iteritems(iterator)
         else:
             self.iterator = iter(iterator)
-        if isinstance(iterator, Stream):
-            self.workers = iterator.workers
-        else:
-            self.workers = PoolOfPools()
 
     # noinspection PyTypeChecker
     def __len__(self):
@@ -71,14 +67,21 @@ class Stream(Iterable, Sized):
         self.iterator = chain([first_element], self.iterator)
         return first_element
 
-    def filter(self, predicate, **concurrency_kwargs):
-        mapper = self.workers.get(concurrency_kwargs)
+    def _filter(self, condition, predicate, **concurrency_kwargs):
+        mapper = self.WORKERS.get(concurrency_kwargs)
         if mapper:
-            filtered = mapper(filter_map(predicate), self)
+            iterator = ((predicate, item) for item in self)
+            filtered = mapper(condition, iterator)
             filtered = (result for suitable, result in filtered if suitable)
         else:
             filtered = ifilter(predicate, self)
         return self.__class__(filtered)
+
+    def filter(self, predicate, **concurrency_kwargs):
+        return self._filter(filter_true, predicate, **concurrency_kwargs)
+
+    def exclude(self, predicate, **concurrency_kwargs):
+        return self._filter(filter_false, predicate, **concurrency_kwargs)
 
     def regexp(self, regexp, flags=0):
         regexp = regex_compile(regexp, flags)
@@ -95,9 +98,6 @@ class Stream(Iterable, Sized):
 
     def instances_of(self, cls):
         return self.filter(lambda item: isinstance(item, cls))
-
-    def exclude(self, predicate, **concurrency_kwargs):
-        return self.filter(not_predicate(predicate), **concurrency_kwargs)
 
     def exclude_nones(self):
         return self.filter(lambda item: item is not None)
@@ -130,18 +130,21 @@ class Stream(Iterable, Sized):
         return self.__class__(tuple(repeat(item, clones)) for item in self)
 
     def map(self, predicate, **concurrency_kwargs):
-        mapper = self.workers.get(concurrency_kwargs)
-        if mapper:
-            mapped = mapper(filter_map(predicate), self)
-        else:
-            mapped = imap(predicate, self)
-        return self.__class__(mapped)
+        mapper = self.WORKERS.get(concurrency_kwargs)
+        if not mapper:
+            mapper = imap
+        return self.__class__(mapper(predicate, self))
 
-    def value_mapper(self, predicate, **concurrency_kwargs):
-        return self.map(value_mapper(predicate), **concurrency_kwargs)
+    def _kv_map(self, mapper, predicate, **concurrency_kwargs):
+        iterator = ((predicate, item) for item in self)
+        stream = self.__class__(iterator)
+        return stream.map(mapper, **concurrency_kwargs)
 
-    def key_mapper(self, predicate, **concurrency_kwargs):
-        return self.map(key_mapper(predicate), **concurrency_kwargs)
+    def value_map(self, predicate, **concurrency_kwargs):
+        return self._kv_map(value_mapper, predicate, **concurrency_kwargs)
+
+    def key_map(self, predicate, **concurrency_kwargs):
+        return self._kv_map(key_mapper, predicate, **concurrency_kwargs)
 
     def distinct(self):
         return self.__class__(distinct(self))
