@@ -19,16 +19,16 @@ class GreenletFuture(Future):
 
     def __init__(self, greenlet):
         super(GreenletFuture, self).__init__()
-        self.greenlet = greenlet
+        self._greenlet = greenlet
 
     def execute(self, timeout=None):
         try:
-            processed_result = self.greenlet.get(True, timeout)
+            processed_result = self._greenlet.get(True, timeout)
         except Timeout as exc:
             self.set_exception(exc)
         else:
-            if self.greenlet.exception:
-                self.set_exception(self.greenlet.exception)
+            if self._greenlet.exception:
+                self.set_exception(self._greenlet.exception)
             else:
                 self.set_result(processed_result)
 
@@ -40,10 +40,6 @@ class GreenletFuture(Future):
         self.execute(timeout)
         return super(GreenletFuture, self).exception(timeout)
 
-    def cancel(self):
-        self.greenlet.kill()
-        return super(GreenletFuture, self).cancel()
-
 
 class GeventExecutor(PoolOfPoolsMixin, Executor):
 
@@ -54,5 +50,5 @@ class GeventExecutor(PoolOfPoolsMixin, Executor):
         self.worker_pool = Pool(self._max_workers)
 
     def submit(self, fn, *args, **kwargs):
-        greenlet = self.worker_pool.apply_async(fn, args, kwargs)
-        return GreenletFuture(greenlet)
+        future = self.worker_pool.apply_async(fn, args, kwargs)
+        return GreenletFuture(future)
