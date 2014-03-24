@@ -36,8 +36,9 @@ class StreamsCase(TestCase):
 
         stream = Stream(dict((v, v) for v in xrange(100)))
         stream = stream.filter(lambda kv: kv[0] % 2)
-        stream = stream.filter(lambda kv: kv[0] % 10)
+        stream = stream.filter(lambda kv: kv[0] % 10, parallel=True)
         stream = stream.limit(5).keys()
+        stream = list(stream)
         self.assertListEqual(list(stream), [1, 3, 5, 7, 9])
 
     def test_map(self):

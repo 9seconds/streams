@@ -18,11 +18,11 @@ from six import iteritems, advance_iterator
 from six.moves import filter as ifilter, map as imap, reduce as reduce_func, \
     xrange as xxrange
 
-from .executors import ParallelExecutor
 from .iterators import seed, distinct, peek, accumulate, partly_distinct
-from .utils import ExecutorPool, MaxHeapItem, filter_map, not_predicate, \
-    value_mapper, key_mapper, filter_keys, filter_values, make_list, \
-    int_or_none, float_or_none, long_or_none, decimal_or_none, unicode_or_none
+from .utils import MaxHeapItem, filter_map, not_predicate, value_mapper, \
+    key_mapper, filter_keys, filter_values, make_list, int_or_none, \
+    float_or_none, long_or_none, decimal_or_none, unicode_or_none
+from .poolofpools import PoolOfPools
 
 
 ###############################################################################
@@ -30,7 +30,7 @@ from .utils import ExecutorPool, MaxHeapItem, filter_map, not_predicate, \
 
 class Stream(Iterable, Sized):
 
-    EXECUTORS = ExecutorPool()
+    workers = PoolOfPools()
     SENTINEL = object()
 
     @classmethod
@@ -46,9 +46,16 @@ class Stream(Iterable, Sized):
         return cls(xxrange(*args, **kwargs))
 
     def __init__(self, iterator):
-        iterator_function = iteritems if isinstance(iterator, dict) else iter
-        self.iterator = iterator_function(iterator)
+        if isinstance(iterator, dict):
+            self.iterator = iteritems(iterator)
+        else:
+            self.iterator = iter(iterator)
+        if isinstance(iterator, Stream):
+            self.workers = iterator.workers
+        else:
+            self.workers = PoolOfPools()
 
+    # noinspection PyTypeChecker
     def __len__(self):
         return len(self.iterator)
 
@@ -64,77 +71,77 @@ class Stream(Iterable, Sized):
         self.iterator = chain([first_element], self.iterator)
         return first_element
 
-    def filter(self, predicate, parallel=ParallelExecutor):
-        if parallel:
-            executor = self.EXECUTORS[parallel]
-            new_iterator = executor.map(filter_map(predicate), self)
-            filtered = [item for result, item in new_iterator if result]
+    def filter(self, predicate, **concurrency_kwargs):
+        mapper = self.workers.get(concurrency_kwargs)
+        if mapper:
+            filtered = mapper(filter_map(predicate), self)
+            filtered = (result for suitable, result in filtered if suitable)
         else:
             filtered = ifilter(predicate, self)
         return self.__class__(filtered)
 
     def regexp(self, regexp, flags=0):
         regexp = regex_compile(regexp, flags)
-        return self.filter(regexp.match, None)
+        return self.filter(regexp.match)
 
     def divisible_by(self, number):
-        return self.filter(lambda item: item % number == 0, None)
+        return self.filter(lambda item: item % number == 0)
 
     def evens(self):
         return self.divisible_by(2)
 
     def odds(self):
-        return self.filter(lambda item: item % 2 != 0, None)
+        return self.filter(lambda item: item % 2 != 0)
 
     def instances_of(self, cls):
-        return self.filter(lambda item: isinstance(item, cls), None)
+        return self.filter(lambda item: isinstance(item, cls))
 
-    def exclude(self, predicate, parallel=ParallelExecutor):
-        return self.filter(not_predicate(predicate), parallel)
+    def exclude(self, predicate, **concurrency_kwargs):
+        return self.filter(not_predicate(predicate), **concurrency_kwargs)
 
     def exclude_nones(self):
-        return self.filter(lambda item: item is not None, None)
+        return self.filter(lambda item: item is not None)
 
     def only_trues(self):
-        return self.filter(bool, None)
+        return self.filter(bool)
 
     def only_falses(self):
-        return self.filter(lambda item: not bool(item), None)
+        return self.filter(lambda item: not bool(item))
 
     def only_nones(self):
-        return self.filter(lambda item: item is None, None)
+        return self.filter(lambda item: item is None)
 
     def ints(self):
-        return self.map(int_or_none, None).exclude_nones()
+        return self.map(int_or_none).exclude_nones()
 
     def floats(self):
-        return self.map(float_or_none, None).exclude_nones()
+        return self.map(float_or_none).exclude_nones()
 
     def longs(self):
-        return self.map(long_or_none, None).exclude_nones()
+        return self.map(long_or_none).exclude_nones()
 
     def decimals(self):
-        return self.map(decimal_or_none, None).exclude_nones()
+        return self.map(decimal_or_none).exclude_nones()
 
     def strings(self):
-        return self.map(unicode_or_none, None).exclude_nones()
+        return self.map(unicode_or_none).exclude_nones()
 
     def tuplify(self, clones=2):
         return self.__class__(tuple(repeat(item, clones)) for item in self)
 
-    def map(self, predicate, parallel=ParallelExecutor):
-        if parallel:
-            executor = self.EXECUTORS[parallel]
-            mapped = executor.map(predicate, self)
+    def map(self, predicate, **concurrency_kwargs):
+        mapper = self.workers.get(concurrency_kwargs)
+        if mapper:
+            mapped = mapper(filter_map(predicate), self)
         else:
             mapped = imap(predicate, self)
         return self.__class__(mapped)
 
-    def value_mapper(self, predicate, parallel=ParallelExecutor):
-        return self.map(value_mapper(predicate), parallel)
+    def value_mapper(self, predicate, **concurrency_kwargs):
+        return self.map(value_mapper(predicate), **concurrency_kwargs)
 
-    def key_mapper(self, predicate, parallel=ParallelExecutor):
-        return self.map(key_mapper(predicate), parallel)
+    def key_mapper(self, predicate, **concurrency_kwargs):
+        return self.map(key_mapper(predicate), **concurrency_kwargs)
 
     def distinct(self):
         return self.__class__(distinct(self))
@@ -193,6 +200,7 @@ class Stream(Iterable, Sized):
         if element is not self.SENTINEL:
             return sum((1 for item in self if item is element))
         if hasattr(self.iterator, "__len__"):
+            # noinspection PyTypeChecker
             return len(self.iterator)
         return sum((1 for _ in self))
 
@@ -242,16 +250,16 @@ class Stream(Iterable, Sized):
             return biggest_item.value
         return biggest_item
 
-    def any(self, predicate=None, parallel=None):
+    def any(self, predicate=None, **concurrency_kwargs):
         if predicate is None:
             iterator = iter(self)
         else:
-            iterator = self.map(predicate, parallel)
+            iterator = self.map(predicate, **concurrency_kwargs)
         return any(iterator)
 
-    def all(self, predicate=None, parallel=None):
+    def all(self, predicate=None, **concurrency_kwargs):
         if predicate is None:
             iterator = iter(self)
         else:
-            iterator = self.map(predicate, parallel)
+            iterator = self.map(predicate, **concurrency_kwargs)
         return all(iterator)

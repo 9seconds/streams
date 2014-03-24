@@ -128,12 +128,17 @@ class PoolOfPools(object):
     def process(self, required_workers):
         return self.get_from_pool(self.processes, required_workers)
 
-    def get(self, parallel, process):
-        if parallel in (1, True):
-            return self.parallel(self.default_count)
-        if parallel is not None:
-            return self.parallel(parallel)
-        if process in (1, True):
-            return self.process(self.default_count)
-        if process is not None:
-            return self.process(process)
+    def get(self, kwargs):
+        if "parallel" in kwargs:
+            parallel = kwargs["parallel"]
+            if parallel in (1, True):
+                return self.parallel(self.default_count)
+            if parallel is not None:
+                return self.parallel(parallel)
+
+        if "process" in kwargs:
+            process = kwargs["process"]
+            if process in (1, True):
+                return self.process(self.default_count)
+            if process is not None:
+                return self.process(process)
