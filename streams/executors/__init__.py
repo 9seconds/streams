@@ -9,8 +9,13 @@ from sys import modules
 from .executors import SequentalExecutor, ThreadPoolExecutor, \
     ProcessPoolExecutor
 
-if "gevent.monkey" in modules:
-    from .gevent import GeventExecutor
-    ParallelExecutor = GeventExecutor
+
+ParallelExecutor = ThreadPoolExecutor
+try:
+    import gevent
+except ImportError:
+    pass
 else:
-    ParallelExecutor = ThreadPoolExecutor
+    from .gevent import GeventExecutor
+    if "gevent.monkey" in modules:
+        ParallelExecutor = GeventExecutor
