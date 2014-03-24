@@ -24,9 +24,11 @@ class SequentalExecutor(PoolOfPoolsMixin, Executor):
     def submit(self, fn, *args, **kwargs):
         future = Future()
         try:
-            future.set_result(fn(*args, **kwargs))
+            result = fn(*args, **kwargs)
         except Exception as exc:
             future.set_exception(exc)
+        else:
+            future.set_result(result)
         return future
 
 
