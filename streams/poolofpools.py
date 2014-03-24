@@ -48,25 +48,12 @@ class ExecutorPool(object):
     def squash(self):
         if not self.workers:
             return
-
         with self.lock:
             for avail in list(iterkeys(self.workers)):
                 if not self.workers[avail]:
                     self.workers.pop(avail)
-
-            name_to_workers = self.name_to_worker_mapping()
-            real_availability = self.real_worker_availability()
-
-            self.workers = defaultdict(lambda: [])
-            # sorted matters here. We will go from bottom to top. In this case
-            # we do not need for traversing it again and again
-            for avail, workers in sorted(iteritems(real_availability)):
-                selected_worker = name_to_workers[workers[0]]
-                if len(workers) == 1:
-                    self.workers[avail] = [selected_worker]
-                    continue
-                selected_worker.expand(avail * (len(workers) - 1))
-                real_availability[avail * len(workers)].append(workers[0])
+            self.squash_workers(self.name_to_worker_mapping(),
+                                self.real_worker_availability())
 
     def get_suitable_worker(self, required_workers):
         with self.lock:
@@ -77,11 +64,7 @@ class ExecutorPool(object):
                         min_available = availability
                         suspected_workers = workers
             if min_available is not None:
-                try:
-                    return suspected_workers.pop(), min_available
-                except:
-                    from pdb import set_trace
-                    set_trace()
+                return suspected_workers.pop(), min_available
             return None, 0
 
     def worker_finished(self, worker, required_workers):
@@ -111,6 +94,22 @@ class ExecutorPool(object):
                 availability_to_workers[avail].append(worker_name)
 
             return availability_to_workers
+
+    def squash_workers(self, names, avails):
+        self.workers = defaultdict(lambda: [])
+        avails_to_traverse = set(iterkeys(avails))
+        while avails_to_traverse:
+            minimal_avail = min(avails_to_traverse)
+            avails_to_traverse.discard(minimal_avail)
+            workers = avails[minimal_avail]
+            selected_worker = names[workers[0]]
+            if len(workers) == 1:
+                self.workers[minimal_avail] = [selected_worker]
+            else:
+                selected_worker.expand(minimal_avail * (len(workers) - 1))
+                extended_avail = minimal_avail * len(workers)
+                avails_to_traverse.add(extended_avail)
+            avails.pop(minimal_avail)
 
 
 class PoolOfPools(object):
