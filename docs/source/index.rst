@@ -54,7 +54,14 @@ management and manipulate it according to some conditions, checkout Streams,
 maybe it will help you to create more accurate and maintainable code.
 
 Just suppose Streams as a pipes from your \*nix environment but migrated into
-Python.
+Python. It also has some cool features you need to know about:
+
+    * Laziness,
+    * Small memory footprint even for massive data sets,
+    * Automatic and configurable parallelization,
+    * Smart concurrent pool management.
+
+Checkout Design decisions to understand how it works. It has no magic at all.
 
 Contents:
 
@@ -62,6 +69,7 @@ Contents:
    :maxdepth: 2
 
    user-guide
+   design-decisions
 
 
 Indices and tables
