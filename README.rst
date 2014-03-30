@@ -4,7 +4,8 @@ streams
 .. image:: https://travis-ci.org/9seconds/streams.svg?branch=master
    :target: https://travis-ci.org/9seconds/streams
 
-*Real documentation is still ungoing. This is just a short description.*
+Documentation is still ungoing but you can get it here:
+http://streams.readthedocs.org/en/latest/
 
 This small library provides you with convenient streams deeply inspired by
 Java 8 release. That release contains not only lambdas but pretty cool
