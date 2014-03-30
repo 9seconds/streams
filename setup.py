@@ -33,7 +33,7 @@ if python_version < (3,):
 setup(
     name="Streams",
     description="Streams inspired by Java 8",
-    version="0.1",
+    version="0.6",
     author="Sergey Arkhipov",
     license="MIT",
     author_email="serge@aerialsounds.org",
