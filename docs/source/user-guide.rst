@@ -140,7 +140,8 @@ I some explanation on the go.
 
 
         def extract_averages(csv_filename, xml_filename,
-                             author_prefix=None, count=None, publisher=None, shops=None, available=None):
+                             author_prefix=None, count=None, publisher=None, shops=None,
+                             available=None):
             file_handler = gzopen(csv_filename, "r")
             try:
                 csv_iterator = reader(file_handler)
@@ -164,14 +165,18 @@ I some explanation on the go.
 
                 # let's fetch publisher now. Let's do it in 10 threads
                 if publisher is not None:
-                    stream = stream.map(lambda (author, book): (author, book, publisher_fetch(author, book)),
-                                        parallel=10)
+                    stream = stream.map(
+                        lambda (author, book): (author, book, publisher_fetch(author, book)),
+                        parallel=10
+                    )
                     stream = stream.filter(lambda item: item[-1] == publisher)
                     # we do not have to have publisher now, let's remove it
                     stream = stream.map(lambda item: item[:2])
 
                 # good. Let's compose the list of shops here
-                stream.map(lambda (author, book): (author, book, shop_prices_fetch(author, book, shops)))
+                stream.map(
+                    lambda (author, book): (author, book, shop_prices_fetch(author, book, shops))
+                )
 
                 # now let's make averages
                 stream.map(lambda item: item[:2] + sum(item[3]) / len(item[3]))
@@ -189,11 +194,11 @@ I some explanation on the go.
                     xml.write("<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n")
                     xml.write("<books>\n")
                     for author, book, average in stream:
-                        book = ET.Element("book")
-                        ET.SubElement(book, "name").text = unicode(book)
-                        ET.SubElement(book, "author").text = unicode(author)
-                        ET.SubElement(book, "average_price").text = unicode(average)
-                        xml.write(ET.dumps(book) + "\n")
+                        book_element = ET.Element("book")
+                        ET.SubElement(book_element, "name").text = unicode(book)
+                        ET.SubElement(book_element, "author").text = unicode(author)
+                        ET.SubElement(book_element, "average_price").text = unicode(average)
+                        xml.write(ET.dumps(book_element) + "\n")
                     xml.write("</books>\n")
             finally:
                 file_handler.close()

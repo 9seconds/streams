@@ -63,17 +63,20 @@ Python. It also has some cool features you need to know about:
 
 Checkout Design decisions to understand how it works. It has no magic at all.
 
-Contents:
+
+Terms of content
+----------------
 
 .. toctree::
    :maxdepth: 2
 
+   installation
    user-guide
    design-decisions
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
