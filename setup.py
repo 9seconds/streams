@@ -31,7 +31,7 @@ if python_version < (3,):
 
 
 setup(
-    name="Streams",
+    name="pystreams",
     description="Streams inspired by Java 8",
     version="0.6",
     author="Sergey Arkhipov",
