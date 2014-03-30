@@ -4,8 +4,8 @@ streams
 .. image:: https://travis-ci.org/9seconds/streams.svg?branch=master
    :target: https://travis-ci.org/9seconds/streams
 
-.. image:: https://badge.fury.io/py/streams.png
-    :target: https://badge.fury.io/py/streams.svg
+.. image:: https://badge.fury.io/py/pystreams.svg
+    :target: http://badge.fury.io/py/pystreams
 
 This small library provides you with convenient streams deeply inspired by
 Java 8 release. That release contains not only lambdas but pretty cool
