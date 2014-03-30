@@ -5,7 +5,7 @@ python:
   - "2.7"
   - "3.2"
   - "3.3"
-  #- "3.4"
+  - "3.4"
   - "pypy"
 
 install:
@@ -19,3 +19,7 @@ script:
 notifications:
   email:
     - nineseconds@yandex.ru
+
+matrix:
+  allow_failures:
+    - python: "3.4"
