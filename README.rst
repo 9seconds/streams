@@ -7,9 +7,6 @@ streams
 .. image:: https://badge.fury.io/py/streams.png
     :target: https://badge.fury.io/py/streams.svg
 
-Documentation is still ungoing but you can get it here:
-http://streams.readthedocs.org/en/latest/
-
 This small library provides you with convenient streams deeply inspired by
 Java 8 release. That release contains not only lambdas but pretty cool
 Stream API which provides developers with possibilities to build sequental
