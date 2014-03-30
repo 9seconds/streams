@@ -157,7 +157,7 @@ I some explanation on the go.
                 stream = stream.key_map(author_fetch, parallel=True)
 
                 # okay, now let's keep only author name here
-                stream = stream.map(lambda (author, book): (author["name"], book))
+                stream = stream.key_map(lambda author: author["name"])
 
                 # we have author prefix, right?
                 if author_prefix is not None:
@@ -208,5 +208,5 @@ the way we need. We've parallelized where neccessary and actually nothing was
 executed before we started to iterate the stream. Stream is lazy and it yields
 one record by one so we haven't swaped.
 
-I guess it is a time to proceed to API documentation. Actually you need to
+I guess it is a time to proceed to :doc:`API documentation <api>`. Actually you need to
 check only Stream class methods documentation, the rest of are utility ones.

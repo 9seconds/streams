@@ -100,10 +100,10 @@ class StreamsCase(TestCase):
         self.assertEqual(5, Stream(arr).median())
 
     def test_nth(self):
-        self.assertEqual(0, Stream(xrange(10)).nth_element(1))
-        self.assertEqual(1, Stream(xrange(10)).nth_element(2))
-        self.assertEqual(9, Stream(xrange(10)).nth_element(10))
-        self.assertIsNone(Stream(xrange(10)).nth_element(100))
+        self.assertEqual(0, Stream(xrange(10)).nth(1))
+        self.assertEqual(1, Stream(xrange(10)).nth(2))
+        self.assertEqual(9, Stream(xrange(10)).nth(10))
+        self.assertIsNone(Stream(xrange(10)).nth(100))
 
     def test_any(self):
         self.assertTrue(Stream(xrange(10)).any())

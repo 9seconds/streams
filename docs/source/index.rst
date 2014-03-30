@@ -61,8 +61,6 @@ Python. It also has some cool features you need to know about:
     * Automatic and configurable parallelization,
     * Smart concurrent pool management.
 
-Checkout Design decisions to understand how it works. It has no magic at all.
-
 
 Terms of content
 ----------------
@@ -72,7 +70,7 @@ Terms of content
 
    installation
    user-guide
-   design-decisions
+   api
 
 
 Indices and tables
