@@ -777,7 +777,7 @@ class Stream(Iterable, Sized):
         ... 10
         """
         iterator = iter(self)
-        if initial is None:
+        if initial is self.SENTINEL:
             initial = advance_iterator(iterator)
         return reduce_func(function, iterator, initial)
 
