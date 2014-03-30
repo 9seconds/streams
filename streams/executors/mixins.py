@@ -45,6 +45,7 @@ class PoolOfPoolsMixin(object):
     def map(self, fn, *iterables, **kwargs):
         callback = kwargs.get("callback", self.dummy_callback)
         worker_count = kwargs.get("required_workers", self._max_workers)
+        worker_count = max(worker_count, 1)
         payload = deque()
         args_iterator = izip(*iterables)
 
