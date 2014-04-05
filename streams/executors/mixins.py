@@ -23,20 +23,22 @@ from six.moves import zip as izip
 
 class PoolOfPoolsMixin(object):
     """
-    Mixin to support :py:class:`PoolOfPools` execution properly.
+    Mixin to support :py:class:`streams.poolofpools.PoolOfPools` execution
+    properly.
 
     Basically it replaces map implementation and provides some additional
-    interface which helps :py:class:`PoolOfPools` to manage executor instance.
-    Current implementation supports expanding only (dynamically increases)
-    the number of workers.
+    interface which helps :py:class:`streams.poolofpools.PoolOfPools` to
+    manage executor instance. Current implementation supports expanding only
+    (dynamically increasing, on the fly) the number of workers.
     """
 
     @staticmethod
     def dummy_callback(*args, **kwargs):
         """
-        Just a dummy callback if no :py:class:`PoolOfPools.worker_finished`
-        is supplied for the mapper. Basically does nothing. Literally nothing.
-        Good thing though, no bugs.
+        Just a dummy callback if no
+        :py:meth:`streams.poolofpools.PoolOfPools.worker_finished` is supplied
+        for the mapper. Basically does nothing. Literally nothing. Good thing
+        though, no bugs.
         """
         pass
 
@@ -77,7 +79,8 @@ class PoolOfPoolsMixin(object):
                               executor.
 
         .. note::
-            It works perfect with :py:class:`GeventExecutor` and
+            It works perfect with
+            :py:class:`streams.executors._gevent.GeventExecutor` and
             :py:class:`concurrent.futures.ThreadPoolExecutor` but has some
             issues with :py:class:`concurrent.futures.ProcessPoolExecutor`.
 

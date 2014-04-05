@@ -8,6 +8,10 @@ it out.
 streams.executors
 -----------------
 
+.. automodule:: streams.executors
+    :members:
+
+
 streams.executors.executors
 """""""""""""""""""""""""""
 

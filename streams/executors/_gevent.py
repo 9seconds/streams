@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-This module provides implementation of :py:class:`GreenletFuture` (thin
-wrapper around :py:class:`concurrent.futures.Future`) and implementation of
-:py:class:`GeventExecutor`.
+This module provides implementation of
+:py:class:`streams.executors._gevent.GreenletFuture` (thin wrapper around
+:py:class:`concurrent.futures.Future`) and implementation of
+:py:class:`streams.executors._gevent.GeventExecutor`.
 
 Basically you can use :py:class:`concurrent.futures.ThreadPoolExecutor`, it is
 ok and will work but to utilize the power of greenlets more carefully it makes

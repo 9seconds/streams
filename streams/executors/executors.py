@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+"""
+This module has implementation of executors wrapped by
+:py:class:`streams.executors.mixins.PoolOfPoolsMixin` and applicable to work
+with :py:class:`streams.poolofpools.PoolOfPools`.
+
+Basically all of them are thin extensions of classes from
+:py:mod:`concurrent.futures`.
+"""
 
 
 ###############################################################################
@@ -15,6 +23,9 @@ from .mixins import PoolOfPoolsMixin
 
 
 class SequentalExecutor(PoolOfPoolsMixin, Executor):
+    """
+    Debug executor. No concurrency, it just yields elements one by one.
+    """
 
     # noinspection PyUnusedLocal
     def __init__(self, *args, **kwargs):
@@ -33,8 +44,16 @@ class SequentalExecutor(PoolOfPoolsMixin, Executor):
 
 
 class ThreadPoolExecutor(PoolOfPoolsMixin, BaseThreadPoolExecutor):
+    """
+    Implementation of :py:class:`concurrent.futures.ThreadPoolExecutor`
+    applicable to work with :py:class:`streams.poolofpools.PoolOfPools`.
+    """
     pass
 
 
 class ProcessPoolExecutor(PoolOfPoolsMixin, BaseProcessPoolExecutor):
+    """
+    Implementation of :py:class:`concurrent.futures.ProcessPoolExecutor`
+    applicable to work with :py:class:`streams.poolofpools.PoolOfPools`.
+    """
     pass
