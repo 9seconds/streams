@@ -31,3 +31,10 @@ streams.executors._gevent
 
 .. automodule:: streams.executors._gevent
     :members:
+
+
+streams.utils
+-------------
+
+.. automodule:: streams.utils
+    :members:
