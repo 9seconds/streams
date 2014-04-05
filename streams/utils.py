@@ -138,36 +138,6 @@ def make_list(iterable):
 ###############################################################################
 
 
-class ExecutorPool(object):
-
-    __slots__ = "lock", "instances"
-
-    def __init__(self):
-        self.lock = RLock()
-        self.instances = {}
-
-    def __del__(self):
-        for instance in self.instances.itervalues():
-            instance.shutdown()
-
-    def __getitem__(self, item):
-        if not issubclass(item, Executor):
-            raise TypeError("Unknown type {}".format(item.__name__))
-
-        name = item.__name__
-        instance = self.instances.get(name)
-        if instance:
-            return instance
-
-        with self.lock:
-            instance = self.instances.get(name)
-            if instance:
-                return instance
-            instance = item(cpu_count())
-            self.instances[name] = instance
-            return instance
-
-
 class MaxHeapItem(object):
 
     __slots__ = "value",
