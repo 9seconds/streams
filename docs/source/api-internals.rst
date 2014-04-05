@@ -33,6 +33,13 @@ streams.executors._gevent
     :members:
 
 
+streams.iterators
+-----------------
+
+.. automodule:: streams.iterators
+    :members:
+
+
 streams.utils
 -------------
 
