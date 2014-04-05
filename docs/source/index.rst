@@ -71,6 +71,7 @@ Terms of content
    installation
    user-guide
    api
+   api-internals
 
 
 Indices and tables

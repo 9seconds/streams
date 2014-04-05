@@ -1,13 +1,28 @@
 # -*- coding: utf-8 -*-
+"""
+This module provides implementation of :py:class:`GreenletFuture` (thin
+wrapper around :py:class:`concurrent.futures.Future`) and implementation of
+:py:class:`GeventExecutor`.
+
+Basically you can use :py:class:`concurrent.futures.ThreadPoolExecutor`, it is
+ok and will work but to utilize the power of greenlets more carefully it makes
+sense to use custom one.
+"""
 
 
 ###############################################################################
 
 
+from warnings import warn
+
 from concurrent.futures import Future, Executor
 
-from gevent import Timeout
-from gevent.pool import Pool
+try:
+    from gevent import Timeout
+    from gevent.pool import Pool
+except ImportError:
+    warn("No gevent is available. Please do not use GeventExecutor, it won't "
+         "work")
 
 from .mixins import PoolOfPoolsMixin
 
@@ -16,6 +31,10 @@ from .mixins import PoolOfPoolsMixin
 
 
 class GreenletFuture(Future):
+    """
+    Just a thin wrapper around a :py:class:`concurrent.futures.Future` to
+    support greenlets.
+    """
 
     def __init__(self, greenlet):
         super(GreenletFuture, self).__init__()
@@ -42,6 +61,10 @@ class GreenletFuture(Future):
 
 
 class GeventExecutor(PoolOfPoolsMixin, Executor):
+    """
+    Implementation of Gevent executor fully compatible with
+    :py:class:`concurrent.futures.Executor`.
+    """
 
     # noinspection PyUnusedLocal
     def __init__(self, *args, **kwargs):

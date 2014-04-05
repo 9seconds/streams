@@ -208,5 +208,5 @@ the way we need. We've parallelized where neccessary and actually nothing was
 executed before we started to iterate the stream. Stream is lazy and it yields
 one record by one so we haven't swaped.
 
-I guess it is a time to proceed to :doc:`API documentation <api>`. Actually you need to
-check only Stream class methods documentation, the rest of are utility ones.
+I guess it is a time to proceed to :doc:`API documentation <api>`. Actually
+you need to check only Stream class methods documentation, the rest of are utility ones.
