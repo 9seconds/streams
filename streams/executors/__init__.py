@@ -16,6 +16,6 @@ try:
 except ImportError:
     pass
 else:
-    from .gevent import GeventExecutor
+    from ._gevent import GeventExecutor
     if "gevent.monkey" in modules:
         ParallelExecutor = GeventExecutor
