@@ -40,6 +40,14 @@ streams.iterators
     :members:
 
 
+streams.poolofpools
+-------------------
+
+.. automodule:: streams.poolofpools
+    :members:
+    :special-members:
+
+
 streams.utils
 -------------
 
