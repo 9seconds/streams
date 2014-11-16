@@ -5,13 +5,13 @@ Install with Pip or easy_install.
 
     .. code-block:: sh
 
-        $ pip install streams
+        $ pip install pystreams
 
 or
 
     .. code-block:: sh
 
-        $ easy_install streams
+        $ easy_install pystreams
 
 If you want, you can always download the latest bleeding edge from GitHub:
 
