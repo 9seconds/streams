@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 
@@ -14,9 +13,9 @@ try:
 except ImportError:
     from decimal import Decimal
 try:
-    from unittest2 import TestCase, main
+    from unittest2 import TestCase
 except ImportError:
-    from unittest import TestCase, main
+    from unittest import TestCase
 
 # noinspection PyUnresolvedReferences
 from six.moves import xrange
@@ -226,7 +225,3 @@ class StreamsCase(TestCase):
         self.assertIsInstance(float_result, float)
         self.assertEqual(decimal_result, Decimal("10"))
         self.assertIsInstance(decimal_result, Decimal)
-
-
-if __name__ == "__main__":
-    main()
