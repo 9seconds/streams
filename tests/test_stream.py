@@ -18,6 +18,10 @@ except ImportError:
 
 # noinspection PyUnresolvedReferences
 from six.moves import xrange
+from six import string_types, text_type
+from six import PY3
+if PY3:
+    long = int
 
 from streams import Stream
 
@@ -182,7 +186,7 @@ class StreamTests(TestCase):
     def test_it_should_filter_instances_of_a_class(self):
         items = list(xrange(10)) + ['foo', 'bar', 'baz']
         stream = Stream(items)
-        strings = stream.instances_of(basestring)
+        strings = stream.instances_of(string_types)
         self.assertListEqual(list(strings), ['foo', 'bar', 'baz'])
 
         elements = list(xrange(100))
@@ -326,7 +330,7 @@ class StreamTests(TestCase):
 
     ### stream.regexp()
     def test_it_should_filter_by_regular_expression(self):
-        stream = Stream((unicode(x) for x in xrange(100)))
+        stream = Stream((text_type(x) for x in xrange(100)))
         ones = stream.regexp(r'^1')
         self.assertListEqual(list(ones), ['1', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'])
 
