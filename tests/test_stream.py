@@ -89,7 +89,8 @@ class StreamTests(TestCase):
     ### stream.chain()
     def test_it_should_chain_iterables_together(self):
         stream = Stream((range(10), range(10)))
-        self.assertListEqual(list(stream.chain()), list(xrange(10)) + list(xrange(10)))
+        self.assertListEqual(list(stream.chain()),
+                             list(xrange(10)) + list(xrange(10)))
 
     ### stream.count()
     def test_it_should_count_the_number_of_items_in_the_stream(self):
@@ -155,10 +156,11 @@ class StreamTests(TestCase):
         items = ['foo', None, 'bar', None, 'baz', None]
         stream = Stream(items)
         not_none = stream.exclude_nones()
-        self.assertListEqual(list(not_none), [i for i in items if i is not None])
+        self.assertListEqual(list(not_none),
+                             [i for i in items if i is not None])
 
     ### stream.first
-    def test_it_should_return_the_first_element_of_a_stream_without_consuming_the_stream(self):
+    def test_it_should_return_the_first_element_without_consuming_it(self):
         stream = Stream.range(10)
         self.assertEqual(stream.first, 0)
         self.assertEqual(stream.first, 0)
@@ -226,7 +228,8 @@ class StreamTests(TestCase):
     def test_it_should_filter_the_n_largest_items(self):
         stream = Stream(range(100))
         largest = stream.largest(10)
-        self.assertListEqual(list(largest), sorted(range(90, 100), reverse=True))
+        self.assertListEqual(list(largest),
+                             sorted(range(90, 100), reverse=True))
 
     ### stream.limit()
     def test_it_should_limit_the_size_of_the_stream(self):
@@ -269,10 +272,10 @@ class StreamTests(TestCase):
         shuffle(arr)
         self.assertEqual(Stream(arr).median(), 5)
 
-    def test_it_should_return_None_if_finding_the_median_of_an_empty_sequence(self):
+    def test_finding_the_median_of_an_empty_sequence_returns_None(self):
         self.assertIsNone(Stream(()).median())
 
-    def test_it_should_return_the_first_element_if_finding_the_median_of_a_single_length_sequence(self):
+    def test_finding_the_median_of_a_single_length_sequence_returns_it(self):
         self.assertEqual(Stream([1]).median(), 1)
 
     ### stream.nth()
@@ -316,7 +319,7 @@ class StreamTests(TestCase):
         self.assertListEqual(list(all_true), [i for i in items if not bool(i)])
 
     ### stream.partly_distinct()
-    def test_it_should_remove_most_repeated_items_from_a_very_large_stream(self):
+    def test_it_should_remove_most_repeated_items_from_a_long_stream(self):
         stream = Stream.concat(xrange(10001), xrange(10001)).partly_distinct()
         self.assertEqual(stream.count(), 10093)
         # The behavior of repoze.LRUCache doesn't seem to be fathomable, so we
@@ -343,7 +346,9 @@ class StreamTests(TestCase):
     def test_it_should_filter_by_regular_expression(self):
         stream = Stream((text_type(x) for x in xrange(100)))
         ones = stream.regexp(r'^1')
-        self.assertListEqual(list(ones), ['1', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'])
+        self.assertListEqual(
+            list(ones),
+            ['1', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19'])
 
         stream = Stream(str(item) for item in xrange(1000))
         stream = stream.regexp(r"^10*$")
@@ -385,14 +390,18 @@ class StreamTests(TestCase):
         self.assertListEqual(list(sorted), list(reversed(range(10))))
 
     def test_it_should_sort_the_stream_by_key(self):
-        stream = Stream(reversed(list(zip(reversed(list(xrange(10))), range(10)))))
+        zipped = zip(reversed(list(xrange(10))), range(10))
+        stream = Stream(reversed(list(zipped)))
         sorted = stream.sorted(key=itemgetter(1))
-        self.assertListEqual(list(sorted), list(zip(reversed(range(10)), range(10))))
+        self.assertListEqual(list(sorted),
+                             list(zip(reversed(range(10)), range(10))))
 
     def test_it_should_reverse_sort_the_stream_by_key(self):
         stream = Stream(zip(reversed(range(10)), range(10)))
         sorted = stream.sorted(itemgetter(1), reverse=True)
-        self.assertListEqual(list(sorted), list(reversed(list(zip(reversed(range(10)), range(10))))))
+        self.assertListEqual(
+            list(sorted),
+            list(reversed(list(zip(reversed(range(10)), range(10))))))
 
     ### stream.strings()
     def test_it_should_cast_a_stream_to_strings(self):
@@ -430,6 +439,7 @@ class StreamTests(TestCase):
 
     ### stream.values()
     def test_it_should_include_only_values(self):
-        stream = Stream(list(zip(range(10), range(100, 110), range(20, 30))) + ['foo'])
+        stream = Stream(list(zip(range(10), range(100, 110),
+                                 range(20, 30))) + ['foo'])
         values = stream.values()
         self.assertListEqual(list(values), list(range(20, 30)) + ['foo'])
