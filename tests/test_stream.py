@@ -28,7 +28,7 @@ from streams import Stream
 
 ###############################################################################
 class StreamTests(TestCase):
-    ### Stream class methods
+    #   Stream class methods
     def test_it_should_produce_a_range(self):
         stream = Stream.range(10)
         self.assertIsInstance(stream, Stream)
@@ -51,7 +51,7 @@ class StreamTests(TestCase):
         self.assertEqual(next(i), 100)
         self.assertEqual(next(i), 1000)
 
-    ### Stream exhaustion tests
+    #   Stream exhaustion tests
     def test_it_should_iterate_over_an_iterable(self):
         stream = Stream.range(10)
         self.assertListEqual(list(stream), list(xrange(10)))
@@ -61,7 +61,7 @@ class StreamTests(TestCase):
         self.assertListEqual(list(stream), list(xrange(10)))
         self.assertListEqual(list(stream), [])
 
-    ### stream.all()
+    #   stream.all()
     def test_all(self):
         self.assertTrue(Stream(xrange(1, 10)).all(parallel=True))
         self.assertTrue(Stream(xrange(1, 10)).all())
@@ -72,7 +72,7 @@ class StreamTests(TestCase):
         self.assertFalse(Stream(xrange(10)).all(lambda item: item < 5))
         self.assertTrue(Stream(xrange(10)).all(lambda item: item < 100))
 
-    ### stream.any()
+    #   stream.any()
     def test_any(self):
         self.assertTrue(Stream(xrange(10)).any())
         self.assertFalse(Stream([]).any())
@@ -82,17 +82,17 @@ class StreamTests(TestCase):
         self.assertFalse(Stream(xrange(10)).any(lambda item: item < -1,
                                                 parallel=True))
 
-    ### stream.average()
+    #   stream.average()
     def test_average(self):
         self.assertAlmostEqual(Stream(xrange(200)).average(), 99.5)
 
-    ### stream.chain()
+    #   stream.chain()
     def test_it_should_chain_iterables_together(self):
         stream = Stream((range(10), range(10)))
         self.assertListEqual(list(stream.chain()),
                              list(xrange(10)) + list(xrange(10)))
 
-    ### stream.count()
+    #   stream.count()
     def test_it_should_count_the_number_of_items_in_the_stream(self):
         stream = Stream.range(100)
         self.assertEqual(stream.count(), 100)
@@ -106,7 +106,7 @@ class StreamTests(TestCase):
         stream = stream.limit(1000)
         self.assertEqual(stream.count(), 100)
 
-    ### stream.divisible by()
+    #   stream.divisible by()
     def test_it_should_filter_by_divisibility(self):
         stream = Stream(range(6))
         stream = stream.divisible_by(2)
@@ -120,20 +120,20 @@ class StreamTests(TestCase):
         stream = stream.divisible_by(1000)
         self.assertEquals(list(stream), [0, 1000])
 
-    ### stream.decimals()
+    #   stream.decimals()
     def test_it_should_cast_a_stream_to_decimals(self):
         items = list(xrange(10)) + ['0', '23', '99', 'foo', None]
         stream = Stream(items)
         decimals = stream.decimals()
         self.assertListEqual(list(decimals), [Decimal(i) for i in items[0:-2]])
 
-    ### stream.distinct()
+    #   stream.distinct()
     def test_it_should_remove_repeated_items_from_the_stream(self):
         elements = chain(xrange(10), xrange(10), xrange(10), xrange(20))
         stream = Stream(elements)
         self.assertListEqual(list(stream.distinct()), list(xrange(20)))
 
-    ### stream.evens()
+    #   stream.evens()
     def test_it_should_filter_evens(self):
         stream = Stream(range(6))
         stream = stream.evens()
@@ -145,13 +145,13 @@ class StreamTests(TestCase):
         self.assertEqual(len(elements), 100)
         self.assertTrue(all(item % 2 == 0 for item in elements))
 
-    ### stream.exclude()
+    #   stream.exclude()
     def test_it_should_exclude_items(self):
         stream = Stream.range(10)
         odds = stream.exclude(lambda x: x % 2)
         self.assertListEqual(list(odds), [1, 3, 5, 7, 9])
 
-    ### stream.exclude_nones()
+    #   stream.exclude_nones()
     def test_it_should_exclude_values_of_None(self):
         items = ['foo', None, 'bar', None, 'baz', None]
         stream = Stream(items)
@@ -159,7 +159,7 @@ class StreamTests(TestCase):
         self.assertListEqual(list(not_none),
                              [i for i in items if i is not None])
 
-    ### stream.first
+    #   stream.first
     def test_it_should_return_the_first_element_without_consuming_it(self):
         stream = Stream.range(10)
         self.assertEqual(stream.first, 0)
@@ -167,7 +167,7 @@ class StreamTests(TestCase):
         self.assertEqual(stream.first, 0)
         self.assertListEqual(list(stream), list(xrange(10)))
 
-    ### stream.filter()
+    #   stream.filter()
     def test_it_should_filter_items(self):
         stream = Stream(range(10))
         stream = stream.filter(lambda item: item % 2)
@@ -180,14 +180,14 @@ class StreamTests(TestCase):
         stream = list(stream)
         self.assertListEqual(list(stream), [1, 3, 5, 7, 9])
 
-    ### stream.floats()
+    #   stream.floats()
     def test_it_should_cast_a_stream_to_floats(self):
         items = list(xrange(10)) + ['0', '23', '99.999', 'foo', None]
         stream = Stream(items)
         floats = stream.floats()
         self.assertListEqual(list(floats), [float(i) for i in items[0:-2]])
 
-    ### stream.instances_of()
+    #   stream.instances_of()
     def test_it_should_filter_instances_of_a_class(self):
         items = list(xrange(10)) + ['foo', 'bar', 'baz']
         stream = Stream(items)
@@ -204,34 +204,34 @@ class StreamTests(TestCase):
         self.assertEqual(len(ints), 100)
         self.assertTrue(all(isinstance(item, int) for item in ints))
 
-    ### stream.ints()
+    #   stream.ints()
     def test_it_should_cast_a_stream_to_ints(self):
         items = list(xrange(10)) + ['0', '23', '99', 'foo', None]
         stream = Stream(items)
         ints = stream.ints()
         self.assertListEqual(list(ints), [int(i) for i in items[0:-2]])
 
-    ### stream.key_map()
+    #   stream.key_map()
     def test_it_should_map_a_predicate_to_keys_in_key_value_pairs(self):
         items = range(10)
         stream = Stream(items).tuplify()
         mapped = stream.key_map(lambda k: k ** 2)
         self.assertListEqual(list(mapped), [(x ** 2, x) for x in xrange(10)])
 
-    ### stream.keys()
+    #   stream.keys()
     def test_it_should_return_only_keys(self):
         stream = Stream(list(zip(range(10), range(20, 30))) + ['foo'])
         keys = stream.keys()
         self.assertListEqual(list(keys), list(xrange(10)) + ['foo'])
 
-    ### stream.largest()
+    #   stream.largest()
     def test_it_should_filter_the_n_largest_items(self):
         stream = Stream(range(100))
         largest = stream.largest(10)
         self.assertListEqual(list(largest),
                              sorted(range(90, 100), reverse=True))
 
-    ### stream.limit()
+    #   stream.limit()
     def test_it_should_limit_the_size_of_the_stream(self):
         stream = Stream(xrange(10000000000))
         limited = stream.limit(10)
@@ -241,14 +241,14 @@ class StreamTests(TestCase):
         stream = stream.limit(1000)
         self.assertListEqual(list(stream), list(xrange(100)))
 
-    ### stream.longs()
+    #   stream.longs()
     def test_it_should_cast_a_stream_to_longs(self):
         items = list(xrange(10)) + ['0', '23', '99', 'foo', None]
         stream = Stream(items)
         longs = stream.longs()
         self.assertListEqual(list(longs), [long(i) for i in items[0:-2]])
 
-    ### stream.map()
+    #   stream.map()
     def test_it_should_map_a_function_to_the_stream(self):
         stream = Stream(range(10))
         stream = stream.map(lambda item: -item)
@@ -258,7 +258,7 @@ class StreamTests(TestCase):
         stream = stream.values().skip(10).limit(3)
         self.assertListEqual(list(stream), [10, 11, 12])
 
-    ### stream.median()
+    #   stream.median()
     def test_it_should_find_the_median(self):
         self.assertEqual(Stream(xrange(10)).median(), 5)
         self.assertEqual(Stream(xrange(11)).median(), 5)
@@ -278,14 +278,14 @@ class StreamTests(TestCase):
     def test_finding_the_median_of_a_single_length_sequence_returns_it(self):
         self.assertEqual(Stream([1]).median(), 1)
 
-    ### stream.nth()
+    #   stream.nth()
     def test_nth(self):
         self.assertEqual(Stream(xrange(10)).nth(1), 0)
         self.assertEqual(Stream(xrange(10)).nth(2), 1)
         self.assertEqual(Stream(xrange(10)).nth(10), 9)
         self.assertIsNone(Stream(xrange(10)).nth(100))
 
-    ### stream.odds()
+    #   stream.odds()
     def test_it_should_filter_odds(self):
         stream = Stream(range(6))
         stream = stream.odds()
@@ -297,28 +297,28 @@ class StreamTests(TestCase):
         self.assertEqual(len(elements), 100)
         self.assertFalse(any(item % 2 == 0 for item in elements))
 
-    ### stream.only_nones()
+    #   stream.only_nones()
     def test_it_should_include_only_values_of_None(self):
         items = ['foo', None, 'bar', None, 'baz', None]
         stream = Stream(items)
         all_none = stream.only_nones()
         self.assertListEqual(list(all_none), [i for i in items if i is None])
 
-    ### stream.only_trues()
+    #   stream.only_trues()
     def test_it_should_include_only_truthy_values(self):
         items = ['', '', 0, None, 'foo', 'bar']
         stream = Stream(items)
         all_true = stream.only_trues()
         self.assertListEqual(list(all_true), [i for i in items if bool(i)])
 
-    ### stream.only_falses()
+    #   stream.only_falses()
     def test_it_should_include_only_falsey_values(self):
         items = ['', '', 0, None, 'foo', 'bar']
         stream = Stream(items)
         all_true = stream.only_falses()
         self.assertListEqual(list(all_true), [i for i in items if not bool(i)])
 
-    ### stream.partly_distinct()
+    #   stream.partly_distinct()
     def test_it_should_remove_most_repeated_items_from_a_long_stream(self):
         stream = Stream.concat(xrange(10001), xrange(10001)).partly_distinct()
         self.assertEqual(stream.count(), 10093)
@@ -326,23 +326,23 @@ class StreamTests(TestCase):
         # can't test exactly which duplicates will be kept (without testing
         # LRUCache's cache ejection behavior).
 
-    ### stream.peek()
+    #   stream.peek()
     def test_it_should_apply_a_side_effect_to_the_stream(self):
         side_list = []
         stream = Stream.range(10)
         self.assertEqual(side_list, list(stream.peek(side_list.append)))
 
-    ### Stream.range()
+    #   Stream.range()
     def test_range(self):
         self.assertListEqual(list(Stream.range(100)), list(xrange(100)))
 
-    ### stream.reduce()
+    #   stream.reduce()
     def test_it_should_reduce_the_stream(self):
         stream = Stream.range(10)
         reduced = stream.reduce(add)
         self.assertEqual(reduced, sum(range(10)))
 
-    ### stream.regexp()
+    #   stream.regexp()
     def test_it_should_filter_by_regular_expression(self):
         stream = Stream((text_type(x) for x in xrange(100)))
         ones = stream.regexp(r'^1')
@@ -355,7 +355,7 @@ class StreamTests(TestCase):
         stream = stream.ints()
         self.assertListEqual(list(stream), [1, 10, 100])
 
-    ### stream.reversed()
+    #   stream.reversed()
     def test_it_should_reverse_the_stream(self):
         stream = Stream.range(10)
         reverse = stream.reversed()
@@ -366,19 +366,19 @@ class StreamTests(TestCase):
         reverse = reversed(stream)
         self.assertListEqual(list(reverse), list(reversed(range(10))))
 
-    ### stream.skip()
+    #   stream.skip()
     def test_it_should_skip_the_first_n_items(self):
         stream = Stream(range(20))
         skipped = stream.skip(10)
         self.assertListEqual(list(skipped), list(range(10, 20)))
 
-    ### stream.smallest()
+    #   stream.smallest()
     def test_it_should_filter_the_n_smallest_items(self):
         stream = Stream(range(100))
         smallest = stream.smallest(10)
         self.assertListEqual(list(smallest), sorted(range(10)))
 
-    ### stream.sorted()
+    #   stream.sorted()
     def test_it_should_sort_the_stream(self):
         stream = Stream(reversed(range(10)))
         sorted = stream.sorted()
@@ -403,14 +403,14 @@ class StreamTests(TestCase):
             list(sorted),
             list(reversed(list(zip(reversed(range(10)), range(10))))))
 
-    ### stream.strings()
+    #   stream.strings()
     def test_it_should_cast_a_stream_to_strings(self):
         items = range(10)
         stream = Stream(items)
         strings = stream.strings()
         self.assertListEqual(list(strings), [text_type(i) for i in items])
 
-    ### stream.sum()
+    #   stream.sum()
     def test_it_should_sum_a_stream(self):
         elements = list(xrange(5))
         int_result = Stream(elements).ints().sum()
@@ -423,7 +423,7 @@ class StreamTests(TestCase):
         self.assertEqual(decimal_result, Decimal("10"))
         self.assertIsInstance(decimal_result, Decimal)
 
-    ### stream.tuplify()
+    #   stream.tuplify()
     def test_it_should_expand_a_stream_to_tuples(self):
         tuples = Stream.range(10).tuplify()
         self.assertListEqual(list(tuples), [(i, i) for i in range(10)])
@@ -431,13 +431,13 @@ class StreamTests(TestCase):
         tuples = Stream.range(10).tuplify(clones=4)
         self.assertListEqual(list(tuples), [(i, i, i, i) for i in range(10)])
 
-    ### stream.value_map()
+    #   stream.value_map()
     def test_it_should_map_a_predicate_to_values_in_key_value_pairs(self):
         stream = Stream.range(10).tuplify()
         mapped = stream.value_map(lambda v: v ** 2)
         self.assertListEqual(list(mapped), [(x, x ** 2) for x in xrange(10)])
 
-    ### stream.values()
+    #   stream.values()
     def test_it_should_include_only_values(self):
         stream = Stream(list(zip(range(10), range(100, 110),
                                  range(20, 30))) + ['foo'])
