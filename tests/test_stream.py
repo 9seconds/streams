@@ -97,10 +97,13 @@ class StreamTests(TestCase):
         self.assertEqual(stream.count(), 100)
 
     def test_it_should_count_the_number_of_occurrences_in_the_stream(self):
-        stream = Stream('foobar')
-        self.assertEqual(stream.count('o'), 2)
-        stream = Stream('foobar')
-        self.assertEqual(stream.count('b'), 1)
+        stream = Stream(xrange(100))
+        stream = stream.limit(50)
+        self.assertEqual(stream.count(), 50)
+
+        stream = Stream(xrange(100))
+        stream = stream.limit(1000)
+        self.assertEqual(stream.count(), 100)
 
     ### stream.divisible by()
     def test_it_should_filter_by_divisibility(self):
