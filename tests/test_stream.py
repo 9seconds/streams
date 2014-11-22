@@ -315,6 +315,14 @@ class StreamTests(TestCase):
         all_true = stream.only_falses()
         self.assertListEqual(list(all_true), [i for i in items if not bool(i)])
 
+    ### stream.partly_distinct()
+    def test_it_should_remove_most_repeated_items_from_a_very_large_stream(self):
+        stream = Stream.concat(xrange(10001), xrange(10001)).partly_distinct()
+        self.assertEqual(stream.count(), 10093)
+        # The behavior of repoze.LRUCache doesn't seem to be fathomable, so we
+        # can't test exactly which duplicates will be kept (without testing
+        # LRUCache's cache ejection behavior).
+
     ### stream.peek()
     def test_it_should_apply_a_side_effect_to_the_stream(self):
         side_list = []
