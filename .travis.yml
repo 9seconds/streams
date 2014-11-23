@@ -10,11 +10,12 @@ python:
 
 install:
   - "pip install --use-mirrors pep8"
+  - "pip install --use-mirrors -r test-requirements.txt"
   - "pip install --use-mirrors -r requirements.txt"
 
 script:
   - pep8 --exclude=docs .
-  - ./tests.py
+  - nosetests --with-coverage --cover-package=streams
 
 notifications:
   email:

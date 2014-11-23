@@ -11,7 +11,7 @@ lambdas so we need for whole pickleable functions.
 
 ###############################################################################
 
-
+from six import PY3
 from six import text_type
 # noinspection PyUnresolvedReferences
 from six.moves import zip as izip
@@ -21,6 +21,8 @@ try:
 except ImportError:
     from decimal import Decimal
 
+if PY3:
+    long = int
 
 ###############################################################################
 
