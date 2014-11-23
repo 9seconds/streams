@@ -9,7 +9,7 @@ This module contains the definition of Stream class.
 
 from __future__ import division
 
-from collections import Iterable, Sized
+from collections import Iterable, Sized, deque
 from heapq import nlargest, nsmallest, heappush, heappop
 from itertools import chain, islice, repeat
 from operator import add, truediv
@@ -39,6 +39,7 @@ class Stream(Iterable, Sized):
 
     WORKERS = PoolOfPools()
     SENTINEL = object()
+    ALL = object()
 
     @classmethod
     def concat(cls, *streams):
@@ -112,7 +113,7 @@ class Stream(Iterable, Sized):
         """
         return cls(xxrange(*args, **kwargs))
 
-    def __init__(self, iterator):
+    def __init__(self, iterator, max_cache=0):
         """
         Initializes the :py:class:`Stream`.
 
@@ -123,7 +124,15 @@ class Stream(Iterable, Sized):
 
         :param Iterable iterator: Iterator which has to be converted into
                                   :py:class:`Stream`.
+        :param int max_cache: the number of items to cache (defaults to
+                              ``Stream.ALL``).
         """
+        self._max_cache = max_cache
+        if max_cache == 0:
+            self._cache = None
+        else:
+            max_cache = None if max_cache is self.ALL else max_cache
+            self._cache = deque(maxlen=max_cache)
         if isinstance(iterator, dict):
             self.iterator = iteritems(iterator)
         else:
@@ -140,7 +149,17 @@ class Stream(Iterable, Sized):
         """
         To support iteration protocol.
         """
-        return iter(self.iterator)
+        cache = self._cache
+        iterator = self.iterator
+        if cache is None:
+            for item in iterator:
+                yield item
+        else:
+            for item in cache:
+                yield item
+            for item in iterator:
+                cache.append(item)
+                yield item
 
     def __reversed__(self):
         """
@@ -164,6 +183,31 @@ class Stream(Iterable, Sized):
         first_element = advance_iterator(self.iterator)
         self.iterator = chain([first_element], self.iterator)
         return first_element
+
+    def cache(self, max_cache=ALL):
+        """Return a stream which caches elements for future iteration.
+
+        By default the new stream will cache all elements. If passing an
+        integer to ``max_cache``, the new stream will cache up to that many of
+        the most recently iterated elements.
+
+        :param int max_cache: the number of items to cache (defaults to
+                              ``Stream.ALL``).
+        :return: new processed :py:class:`Stream` instance.
+
+        >>> stream = Stream.range(10).cache()
+        >>> list(stream)
+        ... [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        >>> list(stream)
+        ... [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        >>> stream = stream.cache(5)
+        >>> list(stream)
+        ... [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        >>> list(stream)
+        ... [5, 6, 7, 8, 9]
+
+        """
+        return self.__class__(self, max_cache=max_cache)
 
     def _filter(self, condition, predicate, **concurrency_kwargs):
         """

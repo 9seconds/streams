@@ -28,6 +28,29 @@ from streams import Stream
 
 ###############################################################################
 class StreamTests(TestCase):
+    def test_no_cache(self):
+        # Make a normal stream.
+        stream = Stream.range(10)
+        # Iterate once
+        self.assertEqual(list(stream), list(range(10)))
+        # Iterate twice
+        self.assertEqual(list(stream), [])
+
+    def test_cache(self):
+        # Make a cached stream.
+        stream = Stream.range(10).cache()
+        # Iterate once
+        self.assertEqual(list(stream), list(range(10)))
+        # Iterate twice, this time from the cache.
+        self.assertEqual(list(stream), list(range(10)))
+
+        # Now, we make a new, smaller, cached stream fromm our cached stream.
+        stream = stream.cache(5)
+        # Iterate once
+        self.assertEqual(list(stream), list(range(10)))
+        # Iterate twice, this time from the cache. We get the last 5 values.
+        self.assertEqual(list(stream), list(range(5, 10)))
+
     #   Stream class methods
     def test_it_should_produce_a_range(self):
         stream = Stream.range(10)
