@@ -30,7 +30,7 @@ Just several examples to help you to feel what is it:
             .decimals()                                          \ # convert prices into decimals
             .average()                                           \ # calulate average from the list
 
-And not let's check the piece of code which does almost the same.
+And now let's check the piece of code which does almost the same.
 
     .. code-block:: python
 
@@ -46,9 +46,9 @@ And not let's check the piece of code which does almost the same.
                 sum_of += Decimal(model["price"])
             average_price /= len(urls)
 
-So this is Stream approach. Streams are lazy library and won't do anything
-if it is not needed. Let's say you have urls as iterator and it contains
-several billions of URLs you can't fit into the memory (ThreadPoolExecutor
+So this is Stream approach. Streams is a lazy library and won't do anything
+that is not needed. Let's say you have urls as an iterator and it contains
+several billions of URLs that you can't fit into the memory (ThreadPoolExecutor
 creates a list in the memory) or you want to build a pipeline of your data
 management and manipulate it according to some conditions, checkout Streams,
 maybe it will help you to create more accurate and maintainable code.
